@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RTS.Service.Connector")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+57b0499df2aae84e8bca18bdffa00bdf2a4bd730")]
 [assembly: System.Reflection.AssemblyProductAttribute("RTS.Service.Connector")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RTS.Service.Connector")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
