@@ -16,7 +16,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RTS.SharedKernel", "..\RTS.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RTS.SharedKernel.Test", "..\RTS.SharedKernel.Test\RTS.SharedKernel.Test.csproj", "{B5C62F0B-3A0D-91E7-372A-EF35B817ECF7}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Epicore.Connectors", "Epicore.Connectors", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Connector", "Connector", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SharedKernel", "SharedKernel", "{F61AC945-0778-4AD6-B77B-AC732A192BC3}"
 EndProject

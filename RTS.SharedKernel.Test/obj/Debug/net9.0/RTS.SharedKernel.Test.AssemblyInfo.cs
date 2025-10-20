@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RTS.SharedKernel.Test")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+57b0499df2aae84e8bca18bdffa00bdf2a4bd730")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b6649210968d0dcd1faa3f262986b3dd45f97a9e")]
 [assembly: System.Reflection.AssemblyProductAttribute("RTS.SharedKernel.Test")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RTS.SharedKernel.Test")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
