@@ -23,8 +23,4 @@
     <Folder Include="Domain\Invoices\Entities\" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\RTS.Service.Connector\RTS.Service.Connector.csproj" />
-  </ItemGroup>
-
 </Project>
