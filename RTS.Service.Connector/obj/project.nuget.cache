@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "dgSpecHash": "C3wpH2K4txM=",
+  "success": false,
+  "projectFilePath": "C:\\Users\\Laptop 01\\source\\repos\\epicore-connectors\\RTS.Service.Connector\\RTS.Service.Connector.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Laptop 01\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.9\\microsoft.aspnetcore.openapi.9.0.9.nupkg.sha512",
+    "C:\\Users\\Laptop 01\\.nuget\\packages\\microsoft.openapi\\1.6.17\\microsoft.openapi.1.6.17.nupkg.sha512",
+    "C:\\Users\\Laptop 01\\.nuget\\packages\\microsoft.visualstudio.azure.containers.tools.targets\\1.22.1\\microsoft.visualstudio.azure.containers.tools.targets.1.22.1.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1104",
+      "level": "Error",
+      "message": "Unable to find project 'C:\\Users\\Laptop 01\\source\\repos\\epicore-connectors\\RTS.SharedKernel\\RTS.SharedKernel.csproj'. Check that the project reference is valid and that the project file exists.",
+      "projectPath": "C:\\Users\\Laptop 01\\source\\repos\\epicore-connectors\\RTS.Service.Connector\\RTS.Service.Connector.csproj",
+      "filePath": "C:\\Users\\Laptop 01\\source\\repos\\epicore-connectors\\RTS.Service.Connector\\RTS.Service.Connector.csproj",
+      "libraryId": "C:\\Users\\Laptop 01\\source\\repos\\epicore-connectors\\RTS.SharedKernel\\RTS.SharedKernel.csproj",
+      "targetGraphs": [
+        "net9.0"
+      ]
+    }
+  ]
+}
