@@ -3,7 +3,10 @@
     "http": {
       "commandName": "Project",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "TRACELINK_API_TOKEN": "8rs6Y2hmWskdjt3qytwRbfAjymVVzuqdFM6GFsv7xXQC3D7D9wzaC8EF5MkH",
+        "ECONOMIC_APP_SECRET_TOKEN": "",
+        "ECONOMIC_AGREEMENT_TOKEN": ""
       },
       "dotnetRunMessages": true,
       "applicationUrl": "http://localhost:5022"
@@ -11,11 +14,15 @@
     "https": {
       "commandName": "Project",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "TRACELINK_API_TOKEN": "8rs6Y2hmWskdjt3qytwRbfAjymVVzuqdFM6GFsv7xXQC3D7D9wzaC8EF5MkH",
+        "ECONOMIC_APP_SECRET_TOKEN": "",
+        "ECONOMIC_AGREEMENT_TOKEN": ""
       },
       "dotnetRunMessages": true,
-      "applicationUrl": "https://localhost:7270"
+      "applicationUrl": "https://localhost:7270;http://localhost:5022"
     },
+
     "Container (Dockerfile)": {
       "commandName": "Docker",
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
