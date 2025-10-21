@@ -68,5 +68,70 @@ namespace RTS.Service.Connector.Domain.Invoices
             decimal grossAmount,
             string notes)
             : this(0, projectNumber, customer, invoiceCreationDate, paymentTerms, currency, vatZone, netAmount, vatAmount, grossAmount, notes) { }
+
+        public void AddLine(string description, int quantity, decimal unitPrice, decimal vatRate)
+        {
+            Guard.Against.NullOrWhiteSpace(description, nameof(description));
+            Guard.Against.NegativeOrZero(quantity, nameof(quantity));
+            Guard.Against.Negative(unitPrice, nameof(unitPrice));
+            Guard.Against.Negative(vatRate, nameof(vatRate));
+
+            var line = new InvoiceLine(description, quantity, unitPrice, vatRate);
+
+            _invoiceLines.Add(line);
+
+            RecalculateTotals();
+        }
+
+        public void SetCustomer(Customer customer)
+        {
+            Guard.Against.Null(customer, nameof(customer));
+
+            if (customer.Currency != Currency || customer.VatZone != VatZone)
+            {
+                throw new InvalidOperationException("Customer VAT zone or currency mismatch.");
+            }
+
+            Customer = customer;
+        }
+
+        public void SetPaymentTerms(bool paymentTerms)
+        {
+            if (PaymentTerms == paymentTerms)
+            {
+                return;
+            }
+
+            PaymentTerms = paymentTerms;
+        }
+
+        public void SetNotes(string notes)
+        {
+            if (string.IsNullOrWhiteSpace(notes))
+            {
+                Notes = string.Empty;
+                return;
+            }
+
+            if (notes.Length > 300)
+                throw new InvalidOperationException("Notes cannot exceed 300 characters.");
+
+            Notes = notes.Trim();
+        }
+
+        public void RecalculateTotals() 
+        {
+            if (_invoiceLines.Count == 0)
+            {
+                NetAmount = 0;
+                VatAmount = 0;
+                GrossAmount = 0;
+                return;
+            }
+
+            NetAmount = _invoiceLines.Sum(x => x.TotalLinePrice);
+            VatAmount = _invoiceLines.Sum(x => x.LineVatAmount);
+            GrossAmount = NetAmount + VatAmount;
+        }
     }   
 }
