@@ -11,6 +11,7 @@ TestResults/
 .idea/
 
 # Visual Studio files
+*.json
 .vs/
 *.user
 *.userosscache
