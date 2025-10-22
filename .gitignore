@@ -11,6 +11,7 @@ TestResults/
 .idea/
 
 # Visual Studio files
+*.json
 .vs/
 *.user
 *.userosscache
@@ -86,3 +87,5 @@ _ReSharper*/
 # Others
 *.orig
 /.vs/Epicore.Connectors/v17/.suo
+/.vs/Epicore.Connectors/v17/DocumentLayout.backup.json
+/.vs/Epicore.Connectors/v17/DocumentLayout.backup.json
