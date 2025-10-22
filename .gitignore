@@ -86,3 +86,5 @@ _ReSharper*/
 
 # Others
 *.orig
+/.vs/Epicore.Connectors/v17/DocumentLayout.backup.json
+/.vs/Epicore.Connectors/v17/DocumentLayout.backup.json
