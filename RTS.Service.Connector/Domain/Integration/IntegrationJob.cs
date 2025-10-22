@@ -1,4 +1,5 @@
 ﻿using Ardalis.GuardClauses;
+using Connector.Domain.Integration.Aggregates.IntegrationJob;
 using RTS.Service.Connector.Domain.Enums;
 using RTS.Service.Connector.Domain.Integration.Entities;
 using RTS.SharedKernel.DDD;
@@ -10,30 +11,27 @@ namespace RTS.Service.Connector.Domain.Integration
         private readonly List<Mapping> _mappings = new();
         private readonly List<SyncLog> _logs = new();
 
-        public Guid Id { get; private set; }
-        public string ExternalRef { get; private set; }
-        public string TenantId { get; private set; }
-        public string JobType { get; private set; }
-        public IntegrationJobStatus Status { get; private set; }
+        public Guid Id { get; private set; } // ID for the internal job
+        public string ExternalRef { get; private set; } // This is the order ID from Tracelink
+        public string JobType { get; private set; } // CreateDraft or Resync
+        public IntegrationJobStatus Status { get; private set; } 
         public DateTime CreatedAt { get; private set; }
         public DateTime? CompletedAt { get; private set; }
 
         public IReadOnlyCollection<Mapping> Mappings => _mappings.AsReadOnly();
         public IReadOnlyCollection<SyncLog> Logs => _logs.AsReadOnly();
 
-        private IntegrationJob(string externalRef, string jobType, string tenantId)
+        private IntegrationJob(string externalRef, string jobType)
         {
             Id = Guid.NewGuid();
             ExternalRef = externalRef;
             JobType = jobType;
-            TenantId = tenantId;
             Status = IntegrationJobStatus.Planned;
             CreatedAt = DateTime.UtcNow;
             AddLog("Integration job created.", SyncLogEventType.Info);
         }
 
-        public static IntegrationJob Create(string externalRef, string jobType, string tenantId)
-            => new(externalRef, jobType, tenantId);
+        public static IntegrationJob Create(string externalRef) => new(externalRef, "SyncOrder"); // Factory method to create a job in "planned" status. 
 
         public void Start()
         {
@@ -46,17 +44,12 @@ namespace RTS.Service.Connector.Domain.Integration
             AddLog("Integration job started.", SyncLogEventType.Info);
         }
 
-        public void ApplyMapping(DomainMappingType type, string sourceValue, string targetValue, string ruleUsed, string version, bool isFallback)
+        public void RecordMappingFromTraceLink(string field, string traceLinkValue, string economicValue)
         {
-            if (_mappings.Any(x => x.Type == type && x.SourceValue == sourceValue))
-            {
-                throw new InvalidOperationException($"Mapping for {type} / {sourceValue} already exists.");
-            } 
-
-            var mapping = new Mapping(type, sourceValue, targetValue, ruleUsed, version, isFallback);
+            var mapping = new Mapping(field, traceLinkValue, economicValue);
             _mappings.Add(mapping);
 
-            AddLog($"Mapping applied: {type} {sourceValue} → {targetValue} (rule {ruleUsed})", SyncLogEventType.Decision);
+            AddLog($"Mapping recorded from TraceLink: {field} = {traceLinkValue} → {economicValue}", SyncLogEventType.Info);
         }
 
         public void AddLog(string message, SyncLogEventType eventType, string? details = null)

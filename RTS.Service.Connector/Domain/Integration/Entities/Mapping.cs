@@ -1,28 +1,19 @@
-﻿using RTS.Service.Connector.Domain.Enums;
+﻿namespace Connector.Domain.Integration.Aggregates.IntegrationJob;
 
-namespace RTS.Service.Connector.Domain.Integration.Entities
+public class Mapping
 {
-    public class Mapping
-    {
-        public Guid Id { get; private set; }
-        public DomainMappingType Type { get; private set; }
-        public string SourceValue { get; private set; }
-        public string TargetValue { get; private set; }
-        public string RuleUsed { get; private set; }
-        public string Version { get; private set; }
-        public bool IsFallback { get; private set; }
-        public DateTime CreatedAt { get; private set; }
+    public Guid Id { get; private set; }
+    public string Field { get; private set; }          // this is something like "CustomerNumber" or "ItemSKU"
+    public string TraceLinkValue { get; private set; } // value from TraceLink
+    public string EconomicValue { get; private set; }  // value from e-conomic
+    public DateTime CreatedAt { get; private set; }
 
-        internal Mapping(DomainMappingType type, string sourceValue, string targetValue, string ruleUsed, string version, bool isFallback)
-        {
-            Id = Guid.NewGuid();
-            Type = type;
-            SourceValue = sourceValue;
-            TargetValue = targetValue;
-            RuleUsed = ruleUsed;
-            Version = version;
-            IsFallback = isFallback;
-            CreatedAt = DateTime.UtcNow;
-        }
+    internal Mapping(string field, string traceLinkValue, string economicValue)
+    {
+        Id = Guid.NewGuid();
+        Field = field;
+        TraceLinkValue = traceLinkValue;
+        EconomicValue = economicValue;
+        CreatedAt = DateTime.UtcNow;
     }
 }
