@@ -1,4 +1,4 @@
-﻿namespace RTS.Service.Connector.API.Contracts
+﻿namespace RTS.Service.Connector.Application.Contracts
 {
     public sealed class OrderWebhookRequest
     {

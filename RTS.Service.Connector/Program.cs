@@ -1,4 +1,7 @@
-using RTS.Service.Connector.API.Options;
+using RTS.Service.Connector.Infrastructure.Tracelink;
+
+using System.Net.Http.Headers;
+using Microsoft.Extensions.Options;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,10 +10,25 @@ builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();
 
-builder.Services.Configure<TracelinkOptions>(builder.Configuration.GetSection(TracelinkOptions.SectionName));
+// Tracelink configuration
+builder.Services.Configure<TracelinkOptions>( builder.Configuration.GetSection(TracelinkOptions.SectionName ));
 
-// Enviroment variables
-builder.Configuration["Tracelink:ApiToken"] = Environment.GetEnvironmentVariable("TRACELINK_API_TOKEN");
+builder.Services.AddHttpClient("Tracelink", (serviceProvider, client) =>
+{
+    var options = serviceProvider.GetRequiredService<IOptions<TracelinkOptions>>().Value;
+    client.BaseAddress = new Uri(options.BaseUrl);
+    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.ApiToken);
+    client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+});
+
+var traceLinkOptions = builder.Configuration
+    .GetSection("TraceLink")
+    .Get<TracelinkOptions>();
+
+Console.WriteLine($"[TraceLink] BaseUrl: {traceLinkOptions.BaseUrl}");
+Console.WriteLine($"[TraceLink] ApiToken loaded: {!string.IsNullOrWhiteSpace(traceLinkOptions.ApiToken)}");
+
+// Economic configuration
 builder.Configuration["Economic:AgreementGrantToken"] = Environment.GetEnvironmentVariable("ECONOMIC_AGREEMENT_TOKEN");
 builder.Configuration["Economic:AppSecretToken"] = Environment.GetEnvironmentVariable("ECONOMIC_APP_SECRET_TOKEN");
 

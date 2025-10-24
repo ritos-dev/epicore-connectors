@@ -17,9 +17,4 @@
     <ProjectReference Include="..\RTS.SharedKernel\RTS.SharedKernel.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Application\" />
-    <Folder Include="Infrastructure\" />
-  </ItemGroup>
-
 </Project>
