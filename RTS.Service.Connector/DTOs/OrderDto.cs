@@ -1,6 +1,6 @@
-﻿namespace RTS.Service.Connector.Application.DTOs
+﻿namespace RTS.Service.Connector.DTOs
 {
-    public sealed record ExternalOrderDto
+    public sealed record OrderDto
     {
         public string OrderId { get; init; } = default!;
         public string Company { get; init; } = default!;

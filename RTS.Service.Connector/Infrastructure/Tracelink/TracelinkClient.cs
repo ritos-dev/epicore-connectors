@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 
 using RTS.Service.Connector.Application.Contracts;
-using RTS.Service.Connector.Application.DTOs;
+using RTS.Service.Connector.DTOs;
 using RTS.Service.Connector.Interfaces;
 using System.Text.Json;
 
@@ -23,52 +23,79 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
             _logger = logger;
         }
 
-        public async Task<TracelinkResults<ExternalOrderDto>> GetOrderAsync(
-            string orderId,
-            CancellationToken cancellationToken = default)
+        public async Task<TracelinkResults<OrderDto>> GetOrderAsync(
+        string orderId,
+        CancellationToken cancellationToken = default)
         {
             try
             {
-                var response = await _client.GetAsync(
-                    $"/api/orders/{orderId}", cancellationToken);
+                var url = $"{_options.BaseUrl}/tracelink/order/list?token={_options.ApiToken}";
+
+                _logger.LogInformation("Fetching TraceLink order from {Url}", url);
+
+                var request = new HttpRequestMessage(HttpMethod.Post, url);
+                var response = await _client.SendAsync(request, cancellationToken);
 
                 if (!response.IsSuccessStatusCode)
                 {
                     var error = await response.Content.ReadAsStringAsync(cancellationToken);
                     _logger.LogWarning("TraceLink returned {StatusCode}: {Message}", response.StatusCode, error);
 
-                    return new TracelinkResults<ExternalOrderDto>(
-                        false, null, $"HTTP {response.StatusCode}");
+                    return new TracelinkResults<OrderDto>(false, null, $"HTTP {response.StatusCode}");
                 }
 
                 // Deserialize JSON
                 var json = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken: cancellationToken);
-                var order = json.GetProperty("order");
 
-                var dto = new ExternalOrderDto
+                JsonElement arrayElement;
+
+                if (json.ValueKind == JsonValueKind.Array)
                 {
-                    OrderId = order.GetProperty("order_id").GetString()!,
-                    Company = order.GetProperty("company").GetString()!,
-                    Number = order.GetProperty("number").GetString()!,
-                    Name = order.GetProperty("name").GetString()!,
-                    Description = order.GetProperty("description").GetString(),
-                    State = order.GetProperty("state").GetString()!,
-                    StartDate = DateTime.Parse(order.GetProperty("start_date").GetString()!),
-                    DeadlineDate = DateTime.Parse(order.GetProperty("deadline_date").GetString()!),
-                    OrderSourceData = order.GetProperty("order_src_data").GetString(),
-                    CustomerId = int.Parse(order.GetProperty("customer_id").GetString()!),
-                    UpdatedAt = DateTime.Parse(order.GetProperty("update_date").GetString()!)
-                };
+                    arrayElement = json;
+                }
+                else if (json.ValueKind == JsonValueKind.Object)
+                {
+                    var foundArray = json.EnumerateObject()
+                        .FirstOrDefault(p => p.Value.ValueKind == JsonValueKind.Array);
 
-                _logger.LogInformation("TraceLink order {OrderId} fetched successfully", dto.OrderId);
+                    if (foundArray.Value.ValueKind != JsonValueKind.Array)
+                    {
+                        _logger.LogWarning("No array property found in JSON: {Json}", json.ToString());
+                        return new TracelinkResults<OrderDto>(false, null, "Unexpected JSON structure");
+                    }
 
-                return new TracelinkResults<ExternalOrderDto>(true, dto);
+                    arrayElement = foundArray.Value;
+                }
+                else
+                {
+                    _logger.LogWarning("Unexpected JSON type: {Kind}", json.ValueKind);
+                    return new TracelinkResults<OrderDto>(false, null, "Unexpected JSON structure");
+                }
+
+                foreach (var order in arrayElement.EnumerateArray())
+                {
+                    string? id = TryGet(order, "order_id") ?? TryGet(order, "id");
+                    string? number = TryGet(order, "number") ?? TryGet(order, "foreigndata_1") ?? TryGet(order, "name");
+
+                    if (string.Equals(number, orderId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        _logger.LogInformation("Found order → Number: {Number}, Id: {Id}", number, id);
+                        return new TracelinkResults<OrderDto>(true, new OrderDto { OrderId = id!, Number = number! });
+                    }
+                }
+
+                _logger.LogWarning("No order found matching ID {OrderId}", orderId);
+                return new TracelinkResults<OrderDto>(false, null, "Order not found");
             }
-            catch (Exception ex)
+                catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching TraceLink order {OrderId}", orderId);
-                return new TracelinkResults<ExternalOrderDto>(false, null, ex.Message);
+                return new TracelinkResults<OrderDto>(false, null, ex.Message);
             }
+        }
+        private static string? TryGet(JsonElement element, string name)
+        {
+            return element.TryGetProperty(name, out var prop) ? prop.ToString() : null;
         }
     }
 }
