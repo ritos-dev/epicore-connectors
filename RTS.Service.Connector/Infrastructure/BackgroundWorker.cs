@@ -1,20 +1,24 @@
-﻿using RTS.Service.Connector.Interfaces;
+﻿using RTS.Service.Connector.Infrastructure.Economic;
+using RTS.Service.Connector.Interfaces;
 
-namespace RTS.Service.Connector.Infrastructure.Tracelink
+namespace RTS.Service.Connector.Infrastructure
 {
-    public sealed class TracelinkBackgroundWorker : BackgroundService
+    public sealed class ConnectorBackgroundWorker : BackgroundService
     {
         private readonly IBackgroundTaskQueue _queue;
-        private readonly ITracelinkClient _client;
-        private readonly ILogger<TracelinkBackgroundWorker> _logger;
+        private readonly IEconomicClient _economicClient;
+        private readonly ITracelinkClient _tracelinkClient;
+        private readonly ILogger<ConnectorBackgroundWorker> _logger;
 
-        public TracelinkBackgroundWorker(
+        public ConnectorBackgroundWorker(
             IBackgroundTaskQueue queue,
-            ITracelinkClient client,
-            ILogger<TracelinkBackgroundWorker> logger)
+            IEconomicClient ecClient,
+            ITracelinkClient tlClient,
+            ILogger<ConnectorBackgroundWorker> logger)
         {
             _queue = queue;
-            _client = client;
+            _economicClient = ecClient;
+            _tracelinkClient = tlClient;
             _logger = logger;
         }
 
@@ -26,10 +30,11 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
             {
                 try
                 {
+                    // Get next order number from queue
                     var orderNumber = await _queue.DequeueAsync(stoppingToken);
                     _logger.LogInformation("Dequeued order {OrderNumber} — fetching from TraceLink...", orderNumber);
 
-                    var result = await _client.GetOrderAsync(orderNumber, stoppingToken);
+                    var result = await _tracelinkClient.GetOrderAsync(orderNumber, stoppingToken);
 
                     if (!result.IsSuccess)
                     {
@@ -40,6 +45,18 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
                     _logger.LogInformation("Fetched TraceLink order {OrderId} successfully", result.Data?.OrderId);
 
                     // TODO: Save order to database or trigger next process here
+
+                    // Check if order exists in Economic
+                    var existsInEc = await _economicClient.OrderExistsAsync(orderNumber, stoppingToken);
+
+                    if (existsInEc)
+                    {
+                        _logger.LogInformation("[Economic] Order {OrderNumber} exists — ready for invoice draft creation.", orderNumber);
+                    }
+                    else
+                    {
+                        _logger.LogInformation("[Economic] Order {OrderNumber} does not exist in Economic.", orderNumber);
+                    }
                 }
                 catch (Exception ex)
                 {

@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 
 using RTS.Service.Connector.Application.Contracts;
-using RTS.Service.Connector.Infrastructure.Tracelink;
 using RTS.Service.Connector.Interfaces;
 using RTS.Service.Connector.DTOs;
 
@@ -22,7 +21,8 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
             _options = options.Value;
             _logger = logger;
         }
-        /* ORDER LIST TO FIND ID */
+
+        // Order list to find order id
         public async Task<TracelinkResults<OrderDto>> GetOrderAsync(string orderNumber, CancellationToken cancellationToken = default)
         {
             try
@@ -57,7 +57,7 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
             }
         }
 
-        /* ORDER BY ID */
+        // Order by id to get details
         public async Task<TracelinkResults<OrderDto>> GetOrderByIdAsync(string orderId, CancellationToken cancellationToken = default)
         {
             try
