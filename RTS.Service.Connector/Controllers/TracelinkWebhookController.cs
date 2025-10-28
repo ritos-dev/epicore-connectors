@@ -21,7 +21,7 @@ namespace RTS.Service.Connector.Controllers
         [HttpGet("webhook")]
         public IActionResult ReceiveOrder([FromQuery]  string orderNumber)
         {
-            _logger.LogInformation("[TraceLink Webhook] Received order update — OrderNumber: {OrderNumber}", orderNumber);
+            _logger.LogInformation("[TraceLink Webhook] Order is ready to be invoiced — OrderNumber: {OrderNumber}", orderNumber);
 
             _queue.Enqueue(orderNumber);
 
