@@ -14,7 +14,15 @@ namespace RTS.Service.Connector.Infrastructure.Economic
 
         public async Task<bool> OrderExistsAsync(string orderNumber, CancellationToken cancellationToken = default)
         {
-            var url = $"orders?filter=orderNumber$eq:{orderNumber}";
+            // Temp hardcoded mapping for testing
+            if(orderNumber == "24056")
+            {
+                Console.WriteLine("Overriding Tracelink order nr. 24056 to 30092");
+                orderNumber = "30092";
+            }
+            
+            var url = $"orders/drafts?filter=orderNumber$eq:{orderNumber}"; 
+
             Console.WriteLine($"[Economic] Checking order {orderNumber}...");
 
             var response = await _client.GetAsync(url, cancellationToken);
