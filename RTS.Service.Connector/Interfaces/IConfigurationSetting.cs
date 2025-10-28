@@ -1,7 +1,7 @@
 ﻿using RTS.Service.Connector.Domain.Configuration;
 using RTS.Service.Connector.Domain.Enums;
 
-namespace RTS.Service.Connector.Domain.Interfaces
+namespace RTS.Service.Connector.Interfaces
 {
     public interface IConfigurationSettingRepository
     {

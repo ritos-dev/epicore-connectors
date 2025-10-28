@@ -4,9 +4,9 @@
       "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "TRACELINK_API_TOKEN": "8rs6Y2hmWskdjt3qytwRbfAjymVVzuqdFM6GFsv7xXQC3D7D9wzaC8EF5MkH",
-        "ECONOMIC_APP_SECRET_TOKEN": "",
-        "ECONOMIC_AGREEMENT_TOKEN": ""
+        "TRACELINK__ApiToken": "8rs6Y2hmWskdjt3qytwRbfAjymVVzuqdFM6GFsv7xXQC3D7D9wzaC8EF5MkH",
+        "ECONOMIC__APP__SECRET__TOKEN": "",
+        "ECONOMIC__AGREEMENT__TOKEN": ""
       },
       "dotnetRunMessages": true,
       "applicationUrl": "http://localhost:5022"
@@ -15,7 +15,7 @@
       "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "TRACELINK_API_TOKEN": "8rs6Y2hmWskdjt3qytwRbfAjymVVzuqdFM6GFsv7xXQC3D7D9wzaC8EF5MkH",
+        "TRACELINK__ApiToken": "8rs6Y2hmWskdjt3qytwRbfAjymVVzuqdFM6GFsv7xXQC3D7D9wzaC8EF5MkH",
         "ECONOMIC_APP_SECRET_TOKEN": "",
         "ECONOMIC_AGREEMENT_TOKEN": ""
       },

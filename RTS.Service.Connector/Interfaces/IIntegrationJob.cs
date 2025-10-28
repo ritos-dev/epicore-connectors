@@ -1,6 +1,6 @@
 ﻿using RTS.Service.Connector.Domain.Integration;
 
-namespace RTS.Service.Connector.Domain.Interfaces
+namespace RTS.Service.Connector.Interfaces
 {
     public interface IIntegrationJob
     {
