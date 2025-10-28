@@ -18,7 +18,7 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
             IOptions<TracelinkOptions> options,
             ILogger<TracelinkClient> logger)
         {
-            _client = factory.CreateClient("TraceLink");
+            _client = factory.CreateClient("Tracelink");
             _options = options.Value;
             _logger = logger;
         }

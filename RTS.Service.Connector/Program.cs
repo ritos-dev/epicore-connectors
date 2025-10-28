@@ -2,7 +2,7 @@ using System.Net.Http.Headers;
 using Microsoft.Extensions.Options;
 
 using RTS.Service.Connector.Interfaces;
-using RTS.Service.Connector.Application.Contracts;
+using RTS.Service.Connector.Infrastructure.Economic;
 using RTS.Service.Connector.Infrastructure.Tracelink;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,24 +26,44 @@ builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 builder.Services.AddHostedService<TracelinkBackgroundWorker>();
 builder.Services.AddSingleton<ITracelinkClient, TracelinkClient>();
 
-var traceLinkOptions = builder.Configuration
-    .GetSection("TraceLink")
+var tracelinkOptions = builder.Configuration
+    .GetSection("Tracelink")
     .Get<TracelinkOptions>();
 
-if (traceLinkOptions != null)
+if (tracelinkOptions != null)
 {
-    Console.WriteLine($"[TraceLink] BaseUrl: {traceLinkOptions.BaseUrl}");
-    Console.WriteLine($"[TraceLink] ApiToken loaded: {!string.IsNullOrWhiteSpace(traceLinkOptions.ApiToken)}");
+    Console.WriteLine($"[Tracelink] BaseUrl: {tracelinkOptions.BaseUrl}");
+    Console.WriteLine($"[Tracelink] ApiToken loaded: {!string.IsNullOrWhiteSpace(tracelinkOptions.ApiToken)}");
 }
 else
 {
-    Console.WriteLine("[TraceLink] TraceLink options not configured.");
+    Console.WriteLine("[Tracelink] Tracelink options not configured.");
 }
 
 // Economic configuration
-builder.Configuration["Economic:AgreementGrantToken"] = Environment.GetEnvironmentVariable("ECONOMIC_AGREEMENT_TOKEN");
-builder.Configuration["Economic:AppSecretToken"] = Environment.GetEnvironmentVariable("ECONOMIC_APP_SECRET_TOKEN");
+builder.Services.Configure<EconomicOptions>(builder.Configuration.GetSection(EconomicOptions.SectionName));
 
+builder.Services.AddHttpClient("Economic", (serviceProvider, client) =>
+{
+    var options = serviceProvider.GetRequiredService<IOptions<EconomicOptions>>().Value;
+    client.BaseAddress = new Uri(options.BaseUrl);
+    client.DefaultRequestHeaders.Add("X-AppSecretToken", options.AppSecretToken);
+    client.DefaultRequestHeaders.Add("X-AgreementGrantToken", options.AgreementGrantToken);
+    client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+});
+
+var econOptions = builder.Configuration.GetSection("Economic").Get<EconomicOptions>();
+if (econOptions != null)
+{
+    Console.WriteLine($"[Economic] BaseUrl: {econOptions.BaseUrl}");
+    Console.WriteLine($"[Economic] Tokens loaded: {(!string.IsNullOrWhiteSpace(econOptions.AppSecretToken) && !string.IsNullOrWhiteSpace(econOptions.AgreementGrantToken))}");
+}
+else
+{
+    Console.WriteLine("[Economic] Economic options not configured.");
+}
+
+// Kestrel configuration to support HTTP/2
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.ConfigureEndpointDefaults(endpoint =>

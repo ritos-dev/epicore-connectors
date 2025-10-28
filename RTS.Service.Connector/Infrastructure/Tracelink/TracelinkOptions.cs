@@ -2,7 +2,7 @@
 {
     public sealed class TracelinkOptions
     {
-        public const string SectionName = "TraceLink";
+        public const string SectionName = "Tracelink";
 
         public string BaseUrl { get; init; } = string.Empty;
         public string ApiToken { get; init; } = string.Empty;
