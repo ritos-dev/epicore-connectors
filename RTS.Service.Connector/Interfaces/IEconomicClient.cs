@@ -2,6 +2,7 @@
 {
     public interface IEconomicClient
     {
-        Task<bool> OrderExistsAsync(string orderNumber, CancellationToken cancellationToken = default);
+        Task<string?> GetOrderDraftIfExistsAsync(string orderNumber, CancellationToken cancellationToken = default);
+        Task<bool> CreateInvoiceDraftAsync(string orderJson, CancellationToken cancellationToken = default);
     }
 }

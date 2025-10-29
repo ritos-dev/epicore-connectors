@@ -44,18 +44,16 @@ namespace RTS.Service.Connector.Infrastructure
 
                     _logger.LogInformation("Fetched TraceLink order {OrderId} successfully", result.Data?.OrderId);
 
-                    // TODO: Save order to database or trigger next process here
-
-                    // Check if order exists in Economic
-                    var existsInEc = await _economicClient.OrderExistsAsync(orderNumber, stoppingToken);
-
-                    if (existsInEc)
+                    // Get the order from e-conomic
+                    var orderJson = await _economicClient.GetOrderDraftIfExistsAsync(orderNumber, stoppingToken);
+                    if (orderJson != null)
                     {
-                        _logger.LogInformation("[Economic] Order {OrderNumber} exists — ready for invoice draft creation.", orderNumber);
+                        _logger.LogInformation("[Economic] Order {OrderNumber} exists creating invoice draft...", orderNumber);
+                        await _economicClient.CreateInvoiceDraftAsync(orderJson, stoppingToken);
                     }
                     else
                     {
-                        _logger.LogInformation("[Economic] Order {OrderNumber} does not exist in Economic.", orderNumber);
+                        _logger.LogInformation("[Economic] Order {OrderNumber} not found in Economic.", orderNumber);
                     }
                 }
                 catch (Exception ex)
