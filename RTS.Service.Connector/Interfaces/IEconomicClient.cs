@@ -1,4 +1,4 @@
-﻿using RTS.Service.Connector.Application.Contracts;
+﻿using RTS.Service.Connector.Infrastructure;
 
 namespace RTS.Service.Connector.Interfaces
 {

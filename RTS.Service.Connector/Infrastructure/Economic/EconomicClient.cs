@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using RTS.Service.Connector.Application.Contracts;
 using RTS.Service.Connector.Interfaces;
 using System.Text;
 using System.Text.Json;

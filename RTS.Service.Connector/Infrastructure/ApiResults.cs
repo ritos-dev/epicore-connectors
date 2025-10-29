@@ -1,4 +1,4 @@
-﻿namespace RTS.Service.Connector.Application.Contracts
+﻿namespace RTS.Service.Connector.Infrastructure
 {
     public sealed record ApiResult<T>
     (

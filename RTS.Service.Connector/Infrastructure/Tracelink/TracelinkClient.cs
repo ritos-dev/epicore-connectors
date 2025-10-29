@@ -1,6 +1,4 @@
 ﻿using Microsoft.Extensions.Options;
-
-using RTS.Service.Connector.Application.Contracts;
 using RTS.Service.Connector.Interfaces;
 using RTS.Service.Connector.DTOs;
 
