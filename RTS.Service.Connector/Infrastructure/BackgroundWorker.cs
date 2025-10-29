@@ -1,5 +1,4 @@
-﻿using RTS.Service.Connector.Infrastructure.Economic;
-using RTS.Service.Connector.Interfaces;
+﻿using RTS.Service.Connector.Interfaces;
 
 namespace RTS.Service.Connector.Infrastructure
 {
@@ -12,58 +11,65 @@ namespace RTS.Service.Connector.Infrastructure
 
         public ConnectorBackgroundWorker(
             IBackgroundTaskQueue queue,
-            IEconomicClient ecClient,
-            ITracelinkClient tlClient,
+            IEconomicClient economicClient,
+            ITracelinkClient tracelinkClient,
             ILogger<ConnectorBackgroundWorker> logger)
         {
             _queue = queue;
-            _economicClient = ecClient;
-            _tracelinkClient = tlClient;
+            _economicClient = economicClient;
+            _tracelinkClient = tracelinkClient;
             _logger = logger;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("TraceLink Background Worker started.");
+            _logger.LogInformation("[Connector] Background Worker started.");
 
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
                 {
-                    // Get next order number from queue
+                    // Get next order number
                     var orderNumber = await _queue.DequeueAsync(stoppingToken);
-                    _logger.LogInformation("Dequeued order {OrderNumber} — fetching from TraceLink...", orderNumber);
+                    _logger.LogInformation("[Connector] Dequeued order {OrderNumber} — fetching from Tracelink...", orderNumber);
 
-                    var result = await _tracelinkClient.GetOrderAsync(orderNumber, stoppingToken);
-
-                    if (!result.IsSuccess)
+                    // Fetch from Tracelink
+                    var tracelinkResult = await _tracelinkClient.GetOrderAsync(orderNumber, stoppingToken);
+                    if (!tracelinkResult.IsSuccess)
                     {
-                        _logger.LogWarning("Failed to fetch order {OrderNumber}: {Error}", orderNumber, result.ErrorMessage);
+                        _logger.LogWarning("[Tracelink] Failed to fetch Tracelink order {OrderNumber}: {Error}", orderNumber, tracelinkResult.ErrorMessage);
                         continue;
                     }
 
-                    _logger.LogInformation("Fetched TraceLink order {OrderId} successfully", result.Data?.OrderId);
+                    _logger.LogInformation("[Tracelink] Fetched Tracelink order {OrderId} successfully", tracelinkResult.Data?.OrderId);
 
-                    // Get the order from e-conomic
-                    var orderJson = await _economicClient.GetOrderDraftIfExistsAsync(orderNumber, stoppingToken);
-                    if (orderJson != null)
+                    // Fetch order draft from Economic
+                    var draftResult = await _economicClient.GetOrderDraftIfExistsAsync(orderNumber, stoppingToken);
+                    if (!draftResult.IsSuccess)
                     {
-                        _logger.LogInformation("[Economic] Order {OrderNumber} exists creating invoice draft...", orderNumber);
-                        await _economicClient.CreateInvoiceDraftAsync(orderJson, stoppingToken);
+                        _logger.LogWarning("[Economic] Order {OrderNumber} not found or failed: {Error}", orderNumber, draftResult.ErrorMessage);
+                        continue;
                     }
-                    else
+
+                    _logger.LogInformation("[Economic] Order {OrderNumber} exists — creating invoice draft...", orderNumber);
+
+                    // Create invoice draft in Economic
+                    var invoiceResult = await _economicClient.CreateInvoiceDraftAsync(draftResult.Data!, stoppingToken);
+                    if (!invoiceResult.IsSuccess)
                     {
-                        _logger.LogInformation("[Economic] Order {OrderNumber} not found in Economic.", orderNumber);
+                        _logger.LogWarning("[Economic] Failed to create invoice draft for order {OrderNumber}: {Error}", orderNumber, invoiceResult.ErrorMessage);
+                        continue;
                     }
+
+                    _logger.LogInformation("[Economic] Invoice draft created successfully for order {OrderNumber}.", orderNumber);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error while processing TraceLink order from queue.");
+                    _logger.LogError(ex, "[Connector] Error while processing Tracelink order from queue.");
                 }
             }
 
-            _logger.LogInformation("TraceLink Background Worker stopped.");
+            _logger.LogInformation("[Connector] Background Worker stopped.");
         }
     }
 }
-

@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using RTS.Service.Connector.Application.Contracts;
 using RTS.Service.Connector.Interfaces;
 using System.Text;
 using System.Text.Json;
@@ -8,45 +10,44 @@ namespace RTS.Service.Connector.Infrastructure.Economic
     public sealed class EconomicClient : IEconomicClient
     {
         private readonly HttpClient _client;
+        private readonly ILogger<EconomicClient> _logger;
+        private readonly EconomicOptions _options;
 
-        public EconomicClient(IHttpClientFactory factory, IOptions<EconomicOptions> options)
+        public EconomicClient(IHttpClientFactory factory, IOptions<EconomicOptions> options, ILogger<EconomicClient> logger)
         {
             _client = factory.CreateClient("Economic");
+            _logger = logger;
+            _options = options.Value;
         }
 
-        public async Task<string?> GetOrderDraftIfExistsAsync(string orderNumber, CancellationToken cancellationToken = default)
+        public async Task<ApiResult<string>> GetOrderDraftIfExistsAsync(string orderNumber, CancellationToken cancellationToken = default)
         {
-            // Temporary mapping for testing
+            // FOR TESTING ONLY!
             if (orderNumber == "24056")
             {
-                Console.WriteLine("Overriding TraceLink order nr. 24056 → Economic order nr. 30092");
+                _logger.LogInformation("Overriding TraceLink order nr.");
                 orderNumber = "30097";
             }
 
-            var url = $"orders/drafts/{orderNumber}";
-            Console.WriteLine($"[Economic] Fetching order draft {orderNumber}...");
+            _logger.LogInformation("[Economic] Fetching order draft {OrderNumber}...", orderNumber);
 
-            var response = await _client.GetAsync(url, cancellationToken);
+            var response = await _client.GetAsync($"orders/drafts/{orderNumber}", cancellationToken);
             if (!response.IsSuccessStatusCode)
-            {
-                Console.WriteLine($"[Economic] Order {orderNumber} not found → HTTP {response.StatusCode}");
-                return null;
-            }
+                return await Fail<string>(response, cancellationToken);
 
             var json = await response.Content.ReadAsStringAsync(cancellationToken);
-            Console.WriteLine($"[Economic] Order draft {orderNumber} fetched successfully.");
-            return json;
+            _logger.LogInformation("[Economic] Order draft {OrderNumber} fetched successfully.", orderNumber);
+
+            return ApiResult<string>.Success(json);
         }
 
-        // Create an invoice draft
-        public async Task<bool> CreateInvoiceDraftAsync(string orderJson, CancellationToken cancellationToken = default)
+        public async Task<ApiResult<string>> CreateInvoiceDraftAsync(string orderJson, CancellationToken cancellationToken = default)
         {
-            Console.WriteLine("[Economic] Building invoice draft payload from order data...");
+            _logger.LogInformation("[Economic] Building invoice draft payload from order data...");
 
             using var orderDoc = JsonDocument.Parse(orderJson);
             var root = orderDoc.RootElement;
 
-            // Extracting key fields from the order
             var currency = root.GetProperty("currency").GetString();
             var customerNumber = root.GetProperty("customer").GetProperty("customerNumber").GetInt32();
             var paymentTermsNumber = root.GetProperty("paymentTerms").GetProperty("paymentTermsNumber").GetInt32();
@@ -56,7 +57,6 @@ namespace RTS.Service.Connector.Infrastructure.Economic
             var recipientName = recipient.GetProperty("name").GetString();
             var vatZoneNumber = recipient.GetProperty("vatZone").GetProperty("vatZoneNumber").GetInt32();
 
-            // Minimal valid invoice draft JSON
             var invoice = new
             {
                 date = DateTime.UtcNow.ToString("yyyy-MM-dd"),
@@ -70,47 +70,47 @@ namespace RTS.Service.Connector.Infrastructure.Economic
                     vatZone = new { vatZoneNumber }
                 },
                 references = new { other = "TraceLink" },
-                lines = new object[] { } // empty for now
+                lines = Array.Empty<object>()
             };
 
             var jsonBody = JsonSerializer.Serialize(invoice);
-            Console.WriteLine($"[Economic] Sending invoice draft payload: {jsonBody}");
+            _logger.LogInformation("[Economic] Sending invoice draft to Economic.");
 
-            // Send to /invoices/drafts
-            var response = await _client.PostAsync(
-                "invoices/drafts",
-                new StringContent(jsonBody, Encoding.UTF8, "application/json"),
-                cancellationToken);
-
-            // Handle the response
+            var response = await _client.PostAsync("invoices/drafts", new StringContent(jsonBody, Encoding.UTF8, "application/json"), cancellationToken);
             if (!response.IsSuccessStatusCode)
-            {
-                Console.WriteLine($"[Economic] Failed to create invoice draft → HTTP {response.StatusCode}");
-                var error = await response.Content.ReadAsStringAsync(cancellationToken);
-                Console.WriteLine($"[Economic] Response: {error}");
-                return false;
-            }
+                return await Fail<string>(response, cancellationToken);
 
             var result = await response.Content.ReadAsStringAsync(cancellationToken);
 
+            LogDraftInvoiceNumber(result);
+            return ApiResult<string>.Success(result);
+        }
+
+        private void LogDraftInvoiceNumber(string jsonResponse)
+        {
             try
             {
-                using var doc = JsonDocument.Parse(result);
+                using var doc = JsonDocument.Parse(jsonResponse);
                 if (doc.RootElement.TryGetProperty("draftInvoiceNumber", out var draftNumber))
                 {
-                    Console.WriteLine($"[Economic] Draft invoice created successfully → Invoice number: {draftNumber.GetInt32()}");
+                    _logger.LogInformation("[Economic] Draft invoice created successfully → Invoice number: {DraftNumber}", draftNumber.GetInt32());
                 }
                 else
                 {
-                    Console.WriteLine("[Economic] Draft invoice created, but number not found in response.");
+                    _logger.LogInformation("[Economic] Draft invoice created successfully (number not found in response).");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[Economic] Could not parse invoice response: {ex.Message}");
+                _logger.LogError(ex, "[Economic] Could not parse invoice draft response.");
             }
+        }
 
-            return true;
+        private async Task<ApiResult<T>> Fail<T>(HttpResponseMessage response, CancellationToken token)
+        {
+            var msg = await response.Content.ReadAsStringAsync(token);
+            _logger.LogWarning("Request failed with {StatusCode}: {Message}", response.StatusCode, msg);
+            return ApiResult<T>.Failure($"HTTP {response.StatusCode}: {msg}");
         }
     }
 }
