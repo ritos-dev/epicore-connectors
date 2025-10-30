@@ -31,7 +31,7 @@ namespace RTS.Service.Connector.Infrastructure
                 {
                     // Get next order number
                     var orderNumber = await _queue.DequeueAsync(stoppingToken);
-                    _logger.LogInformation("[Connector] Dequeued order {OrderNumber} — fetching from Tracelink...", orderNumber);
+                    _logger.LogInformation("[Connector] Dequeued order {OrderNumber} fetching from Tracelink...", orderNumber);
 
                     // Fetch from Tracelink
                     var tracelinkResult = await _tracelinkClient.GetOrderAsync(orderNumber, stoppingToken);
@@ -54,7 +54,7 @@ namespace RTS.Service.Connector.Infrastructure
                     _logger.LogInformation("[Economic] Order {OrderNumber} exists — creating invoice draft...", orderNumber);
 
                     // Create invoice draft in Economic
-                    var invoiceResult = await _economicClient.CreateInvoiceDraftAsync(draftResult.Data!, stoppingToken);
+                    var invoiceResult = await _economicClient.CreateInvoiceDraftAsync(draftResult.Data!, orderNumber, stoppingToken);
                     if (!invoiceResult.IsSuccess)
                     {
                         _logger.LogWarning("[Economic] Failed to create invoice draft for order {OrderNumber}: {Error}", orderNumber, invoiceResult.ErrorMessage);

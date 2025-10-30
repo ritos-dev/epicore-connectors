@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using RTS.Service.Connector.Interfaces;
 using System.Text;
 using System.Text.Json;
@@ -10,13 +9,11 @@ namespace RTS.Service.Connector.Infrastructure.Economic
     {
         private readonly HttpClient _client;
         private readonly ILogger<EconomicClient> _logger;
-        private readonly EconomicOptions _options;
 
-        public EconomicClient(IHttpClientFactory factory, IOptions<EconomicOptions> options, ILogger<EconomicClient> logger)
+        public EconomicClient(IHttpClientFactory factory, ILogger<EconomicClient> logger)
         {
             _client = factory.CreateClient("Economic");
             _logger = logger;
-            _options = options.Value;
         }
 
         public async Task<ApiResult<string>> GetOrderDraftIfExistsAsync(string orderNumber, CancellationToken cancellationToken = default)
@@ -40,42 +37,25 @@ namespace RTS.Service.Connector.Infrastructure.Economic
             return ApiResult<string>.Success(json);
         }
 
-        public async Task<ApiResult<string>> CreateInvoiceDraftAsync(string orderJson, CancellationToken cancellationToken = default)
+        public async Task<ApiResult<string>> CreateInvoiceDraftAsync(string orderJson, string orderNumber, CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("[Economic] Building invoice draft payload from order data...");
 
-            using var orderDoc = JsonDocument.Parse(orderJson);
-            var root = orderDoc.RootElement;
+            var draft = EconomicInvoiceMapper.MapToInvoiceDraft(orderJson, orderNumber);
 
-            var currency = root.GetProperty("currency").GetString();
-            var customerNumber = root.GetProperty("customer").GetProperty("customerNumber").GetInt32();
-            var paymentTermsNumber = root.GetProperty("paymentTerms").GetProperty("paymentTermsNumber").GetInt32();
-            var layoutNumber = root.GetProperty("layout").GetProperty("layoutNumber").GetInt32();
-
-            var recipient = root.GetProperty("recipient");
-            var recipientName = recipient.GetProperty("name").GetString();
-            var vatZoneNumber = recipient.GetProperty("vatZone").GetProperty("vatZoneNumber").GetInt32();
-
-            var invoice = new
+            var jsonBody = JsonSerializer.Serialize(draft, new JsonSerializerOptions
             {
-                date = DateTime.UtcNow.ToString("yyyy-MM-dd"),
-                currency,
-                customer = new { customerNumber },
-                paymentTerms = new { paymentTermsNumber },
-                layout = new { layoutNumber },
-                recipient = new
-                {
-                    name = recipientName,
-                    vatZone = new { vatZoneNumber }
-                },
-                references = new { other = "TraceLink" },
-                lines = Array.Empty<object>()
-            };
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.Never
+            });
 
-            var jsonBody = JsonSerializer.Serialize(invoice);
             _logger.LogInformation("[Economic] Sending invoice draft to Economic.");
 
-            var response = await _client.PostAsync("invoices/drafts", new StringContent(jsonBody, Encoding.UTF8, "application/json"), cancellationToken);
+            var response = await _client.PostAsync(
+                "invoices/drafts",
+                new StringContent(jsonBody, Encoding.UTF8, "application/json"),
+                cancellationToken);
+
             if (!response.IsSuccessStatusCode)
                 return await Fail<string>(response, cancellationToken);
 
@@ -92,11 +72,11 @@ namespace RTS.Service.Connector.Infrastructure.Economic
                 using var doc = JsonDocument.Parse(jsonResponse);
                 if (doc.RootElement.TryGetProperty("draftInvoiceNumber", out var draftNumber))
                 {
-                    _logger.LogInformation("[Economic] Draft invoice created successfully → Invoice number: {DraftNumber}", draftNumber.GetInt32());
+                    _logger.LogInformation("[Economic] Draft invoice created successfully. Invoice number: {DraftNumber}", draftNumber.GetInt32());
                 }
                 else
                 {
-                    _logger.LogInformation("[Economic] Draft invoice created successfully (number not found in response).");
+                    _logger.LogInformation("[Economic] Invoice number not found.");
                 }
             }
             catch (Exception ex)
