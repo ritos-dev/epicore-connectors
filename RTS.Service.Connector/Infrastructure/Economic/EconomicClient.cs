@@ -1,5 +1,5 @@
-﻿using Microsoft.Extensions.Options;
-using RTS.Service.Connector.Interfaces;
+﻿using RTS.Service.Connector.Interfaces;
+
 using System.Text;
 using System.Text.Json;
 

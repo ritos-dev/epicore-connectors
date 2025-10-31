@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using RTS.Service.Connector.Infrastructure.Economic.Models;
+using RTS.Service.Connector.DTO;
 
 namespace RTS.Service.Connector.Infrastructure.Economic
 {

@@ -1,5 +1,5 @@
-﻿using RTS.Service.Connector.Infrastructure.Services;
-using RTS.Service.Connector.Interfaces;
+﻿using RTS.Service.Connector.Interfaces;
+using RTS.Service.Connector.Infrastructure.Services;
 
 namespace RTS.Service.Connector.Infrastructure
 {

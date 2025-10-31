@@ -1,8 +1,8 @@
-﻿using RTS.Service.Connector.Domain.Enums;
+﻿using RTS.Service.Connector.DTO;
+using RTS.Service.Connector.Domain.Enums;
 using RTS.Service.Connector.Domain.Invoices.Entities;
 
 using System.Text.Json;
-using RTS.Service.Connector.Infrastructure.Economic.Models;
 
 namespace RTS.Service.Connector.Infrastructure.Services
 {
