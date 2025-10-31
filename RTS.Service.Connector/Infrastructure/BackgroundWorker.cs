@@ -1,4 +1,5 @@
-﻿using RTS.Service.Connector.Interfaces;
+﻿using RTS.Service.Connector.Infrastructure.Services;
+using RTS.Service.Connector.Interfaces;
 
 namespace RTS.Service.Connector.Infrastructure
 {
@@ -8,17 +9,20 @@ namespace RTS.Service.Connector.Infrastructure
         private readonly IEconomicClient _economicClient;
         private readonly ITracelinkClient _tracelinkClient;
         private readonly ILogger<ConnectorBackgroundWorker> _logger;
+        private readonly IServiceScopeFactory _scopeFactory;
 
         public ConnectorBackgroundWorker(
             IBackgroundTaskQueue queue,
             IEconomicClient economicClient,
             ITracelinkClient tracelinkClient,
-            ILogger<ConnectorBackgroundWorker> logger)
+            ILogger<ConnectorBackgroundWorker> logger,
+            IServiceScopeFactory scopeFactory)
         {
             _queue = queue;
             _economicClient = economicClient;
             _tracelinkClient = tracelinkClient;
             _logger = logger;
+            _scopeFactory = scopeFactory;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -62,6 +66,14 @@ namespace RTS.Service.Connector.Infrastructure
                     }
 
                     _logger.LogInformation("[Economic] Invoice draft created successfully for order {OrderNumber}.", orderNumber);
+
+                    // Save invoice to database
+                    using (var scope = _scopeFactory.CreateScope())
+                    {
+                        var persistence = scope.ServiceProvider.GetRequiredService<InvoicePersistenceService>();
+                        await persistence.SaveAsync(invoiceResult.Data!, orderNumber, stoppingToken);
+                        _logger.LogInformation("[Database] Invoice persisted successfully for order {OrderNumber}.", orderNumber);
+                    }
                 }
                 catch (Exception ex)
                 {
