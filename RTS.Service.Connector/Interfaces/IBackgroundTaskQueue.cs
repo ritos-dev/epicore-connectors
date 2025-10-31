@@ -1,7 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-
-namespace RTS.Service.Connector.Interfaces
+﻿namespace RTS.Service.Connector.Interfaces
 {
     public interface IBackgroundTaskQueue
     {

@@ -1,8 +1,7 @@
 ﻿using System.Threading.Channels;
-
 using RTS.Service.Connector.Interfaces;
 
-namespace RTS.Service.Connector.Infrastructure.Tracelink
+namespace RTS.Service.Connector.Infrastructure
 {
     public class BackgroundTaskQueue : IBackgroundTaskQueue
     {

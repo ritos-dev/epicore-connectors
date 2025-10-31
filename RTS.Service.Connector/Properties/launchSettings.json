@@ -5,8 +5,8 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "TRACELINK__ApiToken": "8rs6Y2hmWskdjt3qytwRbfAjymVVzuqdFM6GFsv7xXQC3D7D9wzaC8EF5MkH",
-        "ECONOMIC__APP__SECRET__TOKEN": "",
-        "ECONOMIC__AGREEMENT__TOKEN": ""
+        "ECONOMIC__APP__SECRET__TOKEN": "hxCrryIubSYABoqMNbkSpT6OIsBwRMgL0jevuaUnJJs",
+        "ECONOMIC__AGREEMENT__TOKEN": "1MN5GyPfv2qvPsTcgzWiMNdTfelE9cjZ91UpJUTEymk"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "http://localhost:5022"
@@ -16,8 +16,8 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "TRACELINK__ApiToken": "8rs6Y2hmWskdjt3qytwRbfAjymVVzuqdFM6GFsv7xXQC3D7D9wzaC8EF5MkH",
-        "ECONOMIC_APP_SECRET_TOKEN": "",
-        "ECONOMIC_AGREEMENT_TOKEN": ""
+        "ECONOMIC__APP__SECRET__TOKEN": "hxCrryIubSYABoqMNbkSpT6OIsBwRMgL0jevuaUnJJs",
+        "ECONOMIC__AGREEMENT__TOKEN": "1MN5GyPfv2qvPsTcgzWiMNdTfelE9cjZ91UpJUTEymk"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:7270;http://localhost:5022"

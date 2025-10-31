@@ -1,7 +1,4 @@
 ﻿using Microsoft.Extensions.Options;
-
-using RTS.Service.Connector.Application.Contracts;
-using RTS.Service.Connector.Infrastructure.Tracelink;
 using RTS.Service.Connector.Interfaces;
 using RTS.Service.Connector.DTOs;
 
@@ -18,21 +15,22 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
             IOptions<TracelinkOptions> options,
             ILogger<TracelinkClient> logger)
         {
-            _client = factory.CreateClient("TraceLink");
+            _client = factory.CreateClient("Tracelink");
             _options = options.Value;
             _logger = logger;
         }
-        /* ORDER LIST TO FIND ID */
-        public async Task<TracelinkResults<OrderDto>> GetOrderAsync(string orderNumber, CancellationToken cancellationToken = default)
+
+        // Order list to find order id
+        public async Task<ApiResult<OrderDto>> GetOrderAsync(string orderNumber, CancellationToken cancellationToken = default)
         {
             try
             {
                 var url = $"{_options.BaseUrl}/tracelink/order/list?token={_options.ApiToken}";
-                _logger.LogInformation("Fetching TraceLink orders from {Url}", url);
+                _logger.LogInformation("[Tracelink] Fetching TraceLink orders from {Url}", url);
 
                 var response = await _client.PostAsync(url, null, cancellationToken);
                 if (!response.IsSuccessStatusCode)
-                    return await Fail(response, cancellationToken);
+                    return await Fail<OrderDto>(response, cancellationToken);
 
                 var json = await response.Content.ReadAsStringAsync(cancellationToken);
                 var orders = TracelinkParser.ExtractOrders(json);
@@ -42,23 +40,23 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
 
                 if (match is null)
                 {
-                    _logger.LogWarning("No TraceLink order found for {OrderNumber}", orderNumber);
-                    return new TracelinkResults<OrderDto>(false, null, "Order not found");
+                    _logger.LogWarning("[Tracelink] No TraceLink order found for {OrderNumber}", orderNumber);
+                    return new ApiResult<OrderDto>(false, null, "Order not found");
                 }
 
-                _logger.LogInformation("Found order → Number: {Number}, Id: {Id}", match.Number, match.OrderId);
-                return new TracelinkResults<OrderDto>(true,
+                _logger.LogInformation("[Tracelink] Found order. Number: {Number}, Id: {Id}", match.Number, match.OrderId);
+                return new ApiResult<OrderDto>(true,
                     new OrderDto { OrderId = match.OrderId, Number = match.Number});
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching TraceLink order {OrderNumber}", orderNumber);
-                return new TracelinkResults<OrderDto>(false, null, ex.Message);
+                _logger.LogError(ex, "[Tracelink] Error fetching TraceLink order {OrderNumber}", orderNumber);
+                return new ApiResult<OrderDto>(false, null, ex.Message);
             }
         }
 
-        /* ORDER BY ID */
-        public async Task<TracelinkResults<OrderDto>> GetOrderByIdAsync(string orderId, CancellationToken cancellationToken = default)
+        // Order by id to get details
+        public async Task<ApiResult<OrderDto>> GetOrderByIdAsync(string orderId, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -67,7 +65,7 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
 
                 var response = await _client.GetAsync(url, cancellationToken);
                 if (!response.IsSuccessStatusCode)
-                    return await Fail(response, cancellationToken);
+                    return await Fail<OrderDto>(response, cancellationToken);
 
                 var json = await response.Content.ReadAsStringAsync(cancellationToken);
                 var dto = TracelinkParser.ExtractSingleOrder(json);
@@ -75,24 +73,24 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
                 if (dto == null)
                 {
                     _logger.LogWarning("Could not parse TraceLink order {OrderId}", orderId);
-                    return new TracelinkResults<OrderDto>(false, null, "Invalid JSON structure");
+                    return new ApiResult<OrderDto>(false, null, "Invalid JSON structure");
                 }
 
                 _logger.LogInformation("Fetched TraceLink order {OrderId} successfully", orderId);
-                return new TracelinkResults<OrderDto>(true, dto);
+                return new ApiResult<OrderDto>(true, dto);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching TraceLink order {OrderId}", orderId);
-                return new TracelinkResults<OrderDto>(false, null, ex.Message);
+                return new ApiResult<OrderDto>(false, null, ex.Message);
             }
         }
 
-        private async Task<TracelinkResults<OrderDto>> Fail(HttpResponseMessage response, CancellationToken token)
+        private async Task<ApiResult<T>> Fail<T>(HttpResponseMessage response, CancellationToken token)
         {
             var msg = await response.Content.ReadAsStringAsync(token);
-            _logger.LogWarning("TraceLink returned {StatusCode}: {Msg}", response.StatusCode, msg);
-            return new TracelinkResults<OrderDto>(false, null, $"HTTP {response.StatusCode}");
+            _logger.LogWarning("Request failed with {StatusCode}: {Message}", response.StatusCode, msg);
+            return ApiResult<T>.Failure($"HTTP {response.StatusCode}: {msg}");
         }
     }
 }
