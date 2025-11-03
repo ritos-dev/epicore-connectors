@@ -1,7 +1,9 @@
 ﻿using RTS.Service.Connector.Interfaces;
 
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 using System.Text;
-using System.Text.Json;
 
 namespace RTS.Service.Connector.Infrastructure.Economic
 {
@@ -9,25 +11,32 @@ namespace RTS.Service.Connector.Infrastructure.Economic
     {
         private readonly HttpClient _client;
         private readonly ILogger<EconomicClient> _logger;
+        private readonly EconomicOptions _options;
 
-        public EconomicClient(IHttpClientFactory factory, ILogger<EconomicClient> logger)
+        public EconomicClient(
+            IHttpClientFactory factory, 
+            ILogger<EconomicClient> logger, 
+            IOptions<EconomicOptions> options)
         {
             _client = factory.CreateClient("Economic");
             _logger = logger;
+            _options = options.Value;
         }
 
         public async Task<ApiResult<string>> GetOrderDraftIfExistsAsync(string orderNumber, CancellationToken cancellationToken = default)
         {
-            // FOR TESTING ONLY!
+            // FOR TESTING ONLY! Manual override
             if (orderNumber == "24056")
             {
                 _logger.LogInformation("Overriding TraceLink order nr.");
                 orderNumber = "30097";
             }
 
+            var url = $"{_options.BaseUrl}{_options.Endpoints.GetOrderDraft}{orderNumber}";
+
             _logger.LogInformation("[Economic] Fetching order draft {OrderNumber}...", orderNumber);
 
-            var response = await _client.GetAsync($"orders/drafts/{orderNumber}", cancellationToken);
+            var response = await _client.GetAsync(url, cancellationToken);
             if (!response.IsSuccessStatusCode)
                 return await Fail<string>(response, cancellationToken);
 
@@ -39,28 +48,20 @@ namespace RTS.Service.Connector.Infrastructure.Economic
 
         public async Task<ApiResult<string>> CreateInvoiceDraftAsync(string orderJson, string orderNumber, CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("[Economic] Building invoice draft payload from order data...");
-
+            var url = $"{_options.BaseUrl}{_options.Endpoints.CreateDraft}";
             var draft = EconomicInvoiceMapper.MapToInvoiceDraft(orderJson, orderNumber);
+            var jsonBody = JsonConvert.SerializeObject(draft, Formatting.None);
+            var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
-            var jsonBody = JsonSerializer.Serialize(draft, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.Never
-            });
+            _logger.LogInformation("[Economic] Building invoice draft payload from order data...");
 
             _logger.LogInformation("[Economic] Sending invoice draft to Economic.");
 
-            var response = await _client.PostAsync(
-                "invoices/drafts",
-                new StringContent(jsonBody, Encoding.UTF8, "application/json"),
-                cancellationToken);
-
+            var response = await _client.PostAsync(url, content, cancellationToken);
             if (!response.IsSuccessStatusCode)
                 return await Fail<string>(response, cancellationToken);
 
             var result = await response.Content.ReadAsStringAsync(cancellationToken);
-
             LogDraftInvoiceNumber(result);
             return ApiResult<string>.Success(result);
         }
@@ -69,10 +70,12 @@ namespace RTS.Service.Connector.Infrastructure.Economic
         {
             try
             {
-                using var doc = JsonDocument.Parse(jsonResponse);
-                if (doc.RootElement.TryGetProperty("draftInvoiceNumber", out var draftNumber))
+                var root = JObject.Parse(jsonResponse);
+                var draftNumber = root["draftInvoiceNumber"]?.Value<int>();
+
+                if (draftNumber != null)
                 {
-                    _logger.LogInformation("[Economic] Draft invoice created successfully. Invoice number: {DraftNumber}", draftNumber.GetInt32());
+                    _logger.LogInformation("[Economic] Draft invoice created successfully. Invoice number: {DraftNumber}", draftNumber);
                 }
                 else
                 {

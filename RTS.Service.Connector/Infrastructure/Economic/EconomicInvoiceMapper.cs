@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿using Newtonsoft.Json.Linq;
 using RTS.Service.Connector.DTO;
 
 namespace RTS.Service.Connector.Infrastructure.Economic
@@ -7,66 +7,68 @@ namespace RTS.Service.Connector.Infrastructure.Economic
     {
         public static EconomicInvoiceDraft MapToInvoiceDraft(string orderJson, string orderNumber)
         {
-            var orderDoc = JsonDocument.Parse(orderJson);
-            var root = orderDoc.RootElement;
+            var root = JObject.Parse(orderJson);
 
-            // Minimal required for invoice draft
+            // Minimal required fields for invoice draft
             var draft = new EconomicInvoiceDraft
             {
                 Date = DateTime.UtcNow.ToString("yyyy-MM-dd"),
-                Currency = root.GetProperty("currency").GetString(),
+                Currency = root["currency"]?.ToString(),
 
                 Customer = new EconomicCustomer
                 {
-                    CustomerNumber = root.GetProperty("customer").GetProperty("customerNumber").GetInt32()
+                    CustomerNumber = (int)(root["customer"]?["customerNumber"] ?? 0)
                 },
+
                 PaymentTerms = new EconomicPaymentTerms
                 {
-                    PaymentTermsNumber = root.GetProperty("paymentTerms").GetProperty("paymentTermsNumber").GetInt32()
+                    PaymentTermsNumber = (int)(root["paymentTerms"]?["paymentTermsNumber"] ?? 0)
                 },
+
                 Layout = new EconomicLayout
                 {
-                    LayoutNumber = root.GetProperty("layout").GetProperty("layoutNumber").GetInt32()
+                    LayoutNumber = (int)(root["layout"]?["layoutNumber"] ?? 0)
                 },
+
                 Recipient = new EconomicRecipient
                 {
-                    Name = root.GetProperty("recipient").GetProperty("name").GetString(),
+                    Name = root["recipient"]?["name"]?.ToString(),
+                    
                     VatZone = new EconomicVatZone
                     {
-                        VatZoneNumber = root.GetProperty("recipient").GetProperty("vatZone").GetProperty("vatZoneNumber").GetInt32()
+                        VatZoneNumber = (int)(root["recipient"]?["vatZone"]?["vatZoneNumber"] ?? 0)
                     }
                 },
-                References = new EconomicReferences { Other = "TraceLink Project Name" }
+
+                References = new EconomicReferences { Other = "Tracelink project (CRM) number/name." }
             };
 
-            // Optional fields for invoice
+            // non required fields
             draft.Notes = new EconomicNotes
             {
                 TextLine1 = $"Tracelink order #{orderNumber}",
                 TextLine2 = $"Generated on {DateTime.UtcNow:yyyy-MM-dd HH:mm}"
             };
 
-            if (root.TryGetProperty("grossAmount", out var grossProp))
-                draft.Totals.GrossAmount = grossProp.GetDecimal();
-
-            if (root.TryGetProperty("netAmount", out var netProp))
-                draft.Totals.NetAmount = netProp.GetDecimal();
-
-            if (root.TryGetProperty("vatAmount", out var vatProp))
-                draft.Totals.VatAmount = vatProp.GetDecimal();
-
-            if (root.TryGetProperty("lines", out var linesProp) && linesProp.ValueKind == JsonValueKind.Array)
+            draft.Totals = new EconomicTotals
             {
-                foreach (var line in linesProp.EnumerateArray())
+                GrossAmount = (decimal?)root["grossAmount"] ?? 0,
+                NetAmount = (decimal?)root["netAmount"] ?? 0,
+                VatAmount = (decimal?)root["vatAmount"] ?? 0,
+            };
+
+            var lines = root["lines"] as JArray;
+            if (lines != null)
+            {
+                foreach (var line in lines)
                 {
-                    var mappedLine = new EconomicInvoiceLine
+                    draft.Lines.Add(new EconomicInvoiceLine
                     {
-                        Description = line.GetProperty("description").GetString(),
-                        Quantity = line.GetProperty("quantity").GetInt32(),
-                        UnitPrice = line.GetProperty("unitPrice").GetDecimal(),
-                        VatRate = line.GetProperty("vatRate").GetDecimal()
-                    };
-                    draft.Lines.Add(mappedLine);
+                        Description = line["description"]?.ToString(),
+                        Quantity = (int)(line["quantity"] ?? 0),
+                        UnitPrice = (decimal)(line["unitPrice"] ?? 0),
+                        VatRate = (decimal)(line["vatRate"] ?? 0)
+                    });
                 }
             }
 

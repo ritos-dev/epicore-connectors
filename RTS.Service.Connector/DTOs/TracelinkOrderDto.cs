@@ -2,7 +2,7 @@
 
 namespace RTS.Service.Connector.DTOs
 {
-    public sealed record OrderDto
+    public sealed record TracelinkOrderDto
     {
         [JsonProperty("order_id")]
         public string OrderId { get; init; } = string.Empty;

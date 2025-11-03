@@ -25,7 +25,7 @@ namespace RTS.Service.Connector.Infrastructure.Services
 
                 if (draft == null)
                 {
-                    _logger.LogWarning("[Database] Invoice draft deserialization failed — skipping save for order {OrderNumber}.", orderNumber);
+                    _logger.LogWarning("[Database] Invoice draft deserialization failed skipping save for order {OrderNumber}.", orderNumber);
                     return;
                 }
 
