@@ -38,6 +38,9 @@ namespace RTS.Service.Connector.Infrastructure.Persistence.Configurations
 
             builder.HasIndex(i => i.OrderNumber)
                    .HasDatabaseName("IX_Invoices_OrderNumber");
+
+            builder.Property(i => i.CrmId)
+                   .IsRequired();
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using RTS.Service.Connector.Interfaces;
 using RTS.Service.Connector.Infrastructure.Services;
+using RTS.Service.Connector.Infrastructure.Economic;
 
 namespace RTS.Service.Connector.Infrastructure
 {
@@ -47,6 +48,17 @@ namespace RTS.Service.Connector.Infrastructure
 
                     _logger.LogInformation("[Tracelink] Fetched Tracelink order {OrderId} successfully", tracelinkResult.Data?.OrderId);
 
+                    // Get crm
+                    var crmNumber = tracelinkResult.Data?.OrderSrcData?.Number;
+
+                    if (string.IsNullOrWhiteSpace(crmNumber))
+                    {
+                        _logger.LogWarning("[Tracelink] CRM not found for order {OrderNumber}.", orderNumber);
+                        continue;
+                    }
+
+                    _logger.LogInformation("[Tracelink] Extracted CRM {crmNumber} for order {OrderNumber}.", crmNumber, orderNumber);
+
                     // Fetch order draft from Economic
                     var draftResult = await _economicClient.GetOrderDraftIfExistsAsync(orderNumber, stoppingToken);
                     if (!draftResult.IsSuccess)
@@ -71,8 +83,8 @@ namespace RTS.Service.Connector.Infrastructure
                     using (var scope = _scopeFactory.CreateScope())
                     {
                         var persistence = scope.ServiceProvider.GetRequiredService<InvoicePersistenceService>();
-                        await persistence.SaveAsync(invoiceResult.Data!, orderNumber, stoppingToken);
-                        _logger.LogInformation("[Database] Invoice persisted successfully for order {OrderNumber}.", orderNumber);
+                        await persistence.SaveAsync(invoiceResult.Data!, orderNumber, crmNumber!, stoppingToken);
+                        _logger.LogInformation("[Database] Invoice persisted successfully for order {OrderNumber} with CRM {crmNumber}", orderNumber, crmNumber);
                     }
                 }
                 catch (Exception ex)

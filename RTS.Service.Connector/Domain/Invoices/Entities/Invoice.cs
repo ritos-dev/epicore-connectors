@@ -18,6 +18,7 @@ namespace RTS.Service.Connector.Domain.Invoices.Entities
         public string TargetSystem { get; set; } = "e-conomic";
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
+        public string CrmId { get; set; } = string.Empty;
 
         // Navigation property for invoice lines
         public ICollection<InvoiceLine> Lines { get; set; } = new List<InvoiceLine>();
