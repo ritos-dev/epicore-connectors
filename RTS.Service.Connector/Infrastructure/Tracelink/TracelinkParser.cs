@@ -1,11 +1,17 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using RTS.Service.Connector.DTOs;
 
 namespace RTS.Service.Connector.Infrastructure.Tracelink;
 
-public static class TracelinkParser
+public class TracelinkParser
 {
+    private readonly ILogger<ConnectorBackgroundWorker> _logger;
+
+    public TracelinkParser(ILogger<ConnectorBackgroundWorker> logger)
+    {
+        _logger = logger;
+    }
+
     /// <summary>
     /// Extracts an order list from a TraceLink JSON response.
     /// Handles both top-level arrays and object-wrapped arrays (e.g. "data", "orders", "result").
@@ -28,9 +34,8 @@ public static class TracelinkParser
 
             return array?.ToObject<List<TracelinkOrderDto>>() ?? new List<TracelinkOrderDto>();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[TraceLink Parser] Failed to parse order list: {ex.Message}");
             return new List<TracelinkOrderDto>();
         }
     }
@@ -43,11 +48,18 @@ public static class TracelinkParser
     {
         try
         {
-            return JsonConvert.DeserializeObject<TracelinkOrderDto>(json);
+            var root = JObject.Parse(json);
+            var orderToken = root["order"]; 
+
+            if (orderToken == null)
+            {
+                return null;
+            }
+
+            return orderToken.ToObject<TracelinkOrderDto>();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[TraceLink Parser] Failed to parse single order: {ex.Message}");
             return null;
         }
     }

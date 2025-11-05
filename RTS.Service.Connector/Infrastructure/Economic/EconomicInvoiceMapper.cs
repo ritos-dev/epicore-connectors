@@ -1,31 +1,15 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-using RTS.Service.Connector.DTO;
 using RTS.Service.Connector.DTOs;
 
 namespace RTS.Service.Connector.Infrastructure.Economic
 {
     public static class EconomicInvoiceMapper
     {
-        public static EconomicInvoiceDraft MapToInvoiceDraft(string orderJson, string orderNumber)
+        public static EconomicInvoiceDraft MapToInvoiceDraft(string orderJson, string orderNumber, string crmNumber)
         {
             var root = JObject.Parse(orderJson);
-
-            var orderSrcData = root["order_src_data"]?.ToString();
-            TracelinkOrderSourceData? srcData = null;
-
-            if (!string.IsNullOrWhiteSpace(orderSrcData))
-            {
-                try
-                {
-                    srcData = JsonConvert.DeserializeObject<TracelinkOrderSourceData>(orderSrcData);
-                }
-                catch
-                {
-                    srcData = null;
-                }
-            }
 
             // Minimal required fields for invoice draft
             var draft = new EconomicInvoiceDraft
@@ -60,7 +44,7 @@ namespace RTS.Service.Connector.Infrastructure.Economic
 
                 References = new EconomicReferences 
                 { 
-                    Other = srcData?.Number ?? "Unknown." 
+                    Other = $"Kunde: {crmNumber}" ?? "Kunde: Ukendt." 
                 }
             };
 

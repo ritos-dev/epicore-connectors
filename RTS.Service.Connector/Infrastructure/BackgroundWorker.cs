@@ -1,6 +1,5 @@
 ﻿using RTS.Service.Connector.Interfaces;
 using RTS.Service.Connector.Infrastructure.Services;
-using RTS.Service.Connector.Infrastructure.Economic;
 
 namespace RTS.Service.Connector.Infrastructure
 {
@@ -34,11 +33,11 @@ namespace RTS.Service.Connector.Infrastructure
             {
                 try
                 {
-                    // Get next order number
+                    // Get next order number in queue
                     var orderNumber = await _queue.DequeueAsync(stoppingToken);
                     _logger.LogInformation("[Connector] Dequeued order {OrderNumber} fetching from Tracelink...", orderNumber);
 
-                    // Fetch from Tracelink
+                    // Fint the order in the list 
                     var tracelinkResult = await _tracelinkClient.GetOrderAsync(orderNumber, stoppingToken);
                     if (!tracelinkResult.IsSuccess)
                     {
@@ -46,10 +45,16 @@ namespace RTS.Service.Connector.Infrastructure
                         continue;
                     }
 
-                    _logger.LogInformation("[Tracelink] Fetched Tracelink order {OrderId} successfully", tracelinkResult.Data?.OrderId);
+                    // Get the specific order from the list
+                    var fullResult = await _tracelinkClient.GetOrderByIdAsync(tracelinkResult.Data!.OrderId, stoppingToken);
+                    if(!fullResult.IsSuccess)
+                    {
+                        _logger.LogError("[Tracelink] Failed to fetch full order. {OrderNumber:}, {Error}", orderNumber, fullResult.ErrorMessage);
+                        continue;
+                    }
 
                     // Get crm
-                    var crmNumber = tracelinkResult.Data?.OrderSrcData?.Number;
+                    var crmNumber = fullResult.Data?.OrderSrcData?.Number;
 
                     if (string.IsNullOrWhiteSpace(crmNumber))
                     {
@@ -67,10 +72,10 @@ namespace RTS.Service.Connector.Infrastructure
                         continue;
                     }
 
-                    _logger.LogInformation("[Economic] Order {OrderNumber} exists — creating invoice draft...", orderNumber);
+                    _logger.LogInformation("[Economic] Creating invoice draft for Tracelink order {OrderNumber}", orderNumber);
 
                     // Create invoice draft in Economic
-                    var invoiceResult = await _economicClient.CreateInvoiceDraftAsync(draftResult.Data!, orderNumber, stoppingToken);
+                    var invoiceResult = await _economicClient.CreateInvoiceDraftAsync(draftResult.Data!, orderNumber, crmNumber!, stoppingToken);
                     if (!invoiceResult.IsSuccess)
                     {
                         _logger.LogWarning("[Economic] Failed to create invoice draft for order {OrderNumber}: {Error}", orderNumber, invoiceResult.ErrorMessage);

@@ -29,7 +29,7 @@ namespace RTS.Service.Connector.Infrastructure.Economic
             if (orderNumber == "24056")
             {
                 _logger.LogInformation("Overriding TraceLink order nr.");
-                orderNumber = "30097";
+                orderNumber = "1";
             }
 
             var url = $"{_options.BaseUrl}{_options.Endpoints.GetOrderDraft}{orderNumber}";
@@ -46,10 +46,10 @@ namespace RTS.Service.Connector.Infrastructure.Economic
             return ApiResult<string>.Success(json);
         }
 
-        public async Task<ApiResult<string>> CreateInvoiceDraftAsync(string orderJson, string orderNumber, CancellationToken cancellationToken = default)
+        public async Task<ApiResult<string>> CreateInvoiceDraftAsync(string orderJson, string orderNumber, string crmNumber, CancellationToken cancellationToken = default)
         {
             var url = $"{_options.BaseUrl}{_options.Endpoints.CreateDraft}";
-            var draft = EconomicInvoiceMapper.MapToInvoiceDraft(orderJson, orderNumber);
+            var draft = EconomicInvoiceMapper.MapToInvoiceDraft(orderJson, orderNumber, crmNumber);
             var jsonBody = JsonConvert.SerializeObject(draft, Formatting.None);
             var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 

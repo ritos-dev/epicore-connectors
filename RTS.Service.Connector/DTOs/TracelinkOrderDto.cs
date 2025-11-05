@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
-
 using RTS.Service.Connector.Infrastructure;
+
 
 namespace RTS.Service.Connector.DTOs
 {
@@ -31,7 +31,8 @@ namespace RTS.Service.Connector.DTOs
         public DateTime? DeadlineDate { get; init; }
 
         [JsonProperty("order_src_data")]
-        public TracelinkOrderSourceData OrderSrcData { get; init; }
+        [JsonConverter(typeof(CustomJsonConveter))]
+        public TracelinkOrderSourceData? OrderSrcData { get; init; }
 
         [JsonProperty("customer_id")]
         public int CustomerId { get; init; }

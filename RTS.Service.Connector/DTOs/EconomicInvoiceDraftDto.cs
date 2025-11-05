@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace RTS.Service.Connector.DTO;
+namespace RTS.Service.Connector.DTOs;
 
 public sealed class EconomicInvoiceDraft
 {

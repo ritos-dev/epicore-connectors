@@ -1,4 +1,4 @@
-﻿using RTS.Service.Connector.DTO;
+﻿using RTS.Service.Connector.DTOs;
 using RTS.Service.Connector.Domain.Invoices.Entities;
 
 using Newtonsoft.Json;

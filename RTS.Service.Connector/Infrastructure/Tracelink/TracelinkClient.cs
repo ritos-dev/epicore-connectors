@@ -33,8 +33,9 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
                     return await Fail<TracelinkOrderDto>(response, cancellationToken);
 
                 var json = await response.Content.ReadAsStringAsync(cancellationToken);
-                var orders = TracelinkParser.ExtractOrders(json);
 
+                var orders = TracelinkParser.ExtractOrders(json);
+              
                 var match = orders.FirstOrDefault(o =>
                     string.Equals(o.Number, orderNumber, StringComparison.OrdinalIgnoreCase));
 
@@ -63,11 +64,13 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
                 var url = $"{_options.BaseUrl}{_options.Endpoints.GetOrder}{orderId}?token={_options.ApiToken}";
                 _logger.LogInformation("Fetching TraceLink order by ID from {Url}", url);
 
-                var response = await _client.GetAsync(url, cancellationToken);
+                var response = await _client.PostAsync(url, null, cancellationToken);
                 if (!response.IsSuccessStatusCode)
                     return await Fail<TracelinkOrderDto>(response, cancellationToken);
 
                 var json = await response.Content.ReadAsStringAsync(cancellationToken);
+                //_logger.LogInformation("[Tracelink] Raw JSON {OrderId}: {Json}", orderId, json);
+
                 var dto = TracelinkParser.ExtractSingleOrder(json);
 
                 if (dto == null)
