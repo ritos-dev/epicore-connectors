@@ -1,11 +1,12 @@
 using System.Net.Http.Headers;
 using Microsoft.Extensions.Options;
+using Microsoft.EntityFrameworkCore;
 
 using RTS.Service.Connector.Interfaces;
 using RTS.Service.Connector.Infrastructure;
+using RTS.Service.Connector.Infrastructure.Services;
 using RTS.Service.Connector.Infrastructure.Economic;
 using RTS.Service.Connector.Infrastructure.Tracelink;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,6 +74,16 @@ else
 }
 
 builder.Services.AddSingleton<IEconomicClient, EconomicClient>();
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    options.UseSqlServer(connectionString);
+});
+
+// Database related stuff
+builder.Services.AddScoped<InvoicePersistenceService>();
+builder.Services.AddScoped<TracelinkPersistenceService>();
 
 // Kestrel configuration to support HTTP/2
 builder.WebHost.ConfigureKestrel(options =>

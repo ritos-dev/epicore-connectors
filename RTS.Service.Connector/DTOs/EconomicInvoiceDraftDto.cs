@@ -1,50 +1,107 @@
-﻿namespace RTS.Service.Connector.Infrastructure.Economic.Models
+﻿using Newtonsoft.Json;
+
+namespace RTS.Service.Connector.DTOs;
+
+public sealed class EconomicInvoiceDraft
 {
-    public sealed class EconomicInvoiceDraft
-    {
-        public string Date { get; set; } = DateTime.UtcNow.ToString("yyyy-MM-dd");
-        public string? Currency { get; set; }
+    [JsonProperty("date")]
+    public string Date { get; set; } = DateTime.UtcNow.ToString("yyyy-MM-dd");
 
-        public EconomicCustomer Customer { get; set; } = new();
-        public EconomicPaymentTerms PaymentTerms { get; set; } = new();
-        public EconomicLayout Layout { get; set; } = new();
-        public EconomicRecipient Recipient { get; set; } = new();
-        public EconomicReferences References { get; set; } = new() { Other = "TraceLink" };
-        public EconomicTotals Totals { get; set; } = new();
-        public EconomicNotes Notes { get; set; } = new();
-        public List<EconomicInvoiceLine> Lines { get; set; } = new();
-    }
+    [JsonProperty("currency")]
+    public string? Currency { get; set; }
 
-    public sealed class EconomicCustomer { public int CustomerNumber { get; set; } }
-    public sealed class EconomicPaymentTerms { public int PaymentTermsNumber { get; set; } }
-    public sealed class EconomicLayout { public int LayoutNumber { get; set; } }
-    public sealed class EconomicVatZone { public int VatZoneNumber { get; set; } }
-    public sealed class EconomicReferences { public string Other { get; set; } = string.Empty; }
+    [JsonProperty("customer")]
+    public EconomicCustomer Customer { get; set; } = new();
 
-    public sealed class EconomicInvoiceLine
-    {
-        public string? Description { get; set; }
-        public int Quantity { get; set; }
-        public decimal UnitPrice { get; set; }
-        public decimal VatRate { get; set; }
-    }
+    [JsonProperty("paymentTerms")]
+    public EconomicPaymentTerms PaymentTerms { get; set; } = new();
 
-    public sealed class EconomicTotals
-    {
-        public decimal NetAmount { get; set; }
-        public decimal VatAmount { get; set; }
-        public decimal GrossAmount { get; set; }
-    }
+    [JsonProperty("layout")]
+    public EconomicLayout Layout { get; set; } = new();
 
-    public sealed class EconomicRecipient
-    {
-        public string? Name { get; set; }
-        public EconomicVatZone VatZone { get; set; } = new();
-    }
+    [JsonProperty("recipient")]
+    public EconomicRecipient Recipient { get; set; } = new();
 
-    public sealed class EconomicNotes
-    {
-        public string? TextLine1 { get; set; } = string.Empty;
-        public string? TextLine2 { get; set; } = string.Empty;
-    }
+    [JsonProperty("references")]
+    public EconomicReferences References { get; set; } = new() { Other = "TraceLink" };
+
+    [JsonProperty("totals")]
+    public EconomicTotals Totals { get; set; } = new();
+
+    [JsonProperty("notes")]
+    public EconomicNotes Notes { get; set; } = new();
+
+    [JsonProperty("lines")]
+    public List<EconomicInvoiceLine> Lines { get; set; } = new();
+}
+
+public sealed class EconomicCustomer 
+{
+    [JsonProperty("customerNumber")]
+    public int CustomerNumber { get; set; } 
+}
+public sealed class EconomicPaymentTerms 
+{
+    [JsonProperty("paymentTermsNumber")]
+    public int PaymentTermsNumber { get; set; } 
+}
+public sealed class EconomicLayout 
+{
+    [JsonProperty("layoutNumber")]
+    public int LayoutNumber { get; set; } 
+}
+public sealed class EconomicVatZone 
+{
+    [JsonProperty("vatZoneNumber")]
+    public int VatZoneNumber { get; set; } 
+}
+public sealed class EconomicReferences 
+{
+    [JsonProperty("other")]
+    public string Other { get; set; } = string.Empty; 
+}
+
+public sealed class EconomicInvoiceLine
+{
+    [JsonProperty("description")]
+    public string? Description { get; set; }
+
+    [JsonProperty("quantity")]
+    public int Quantity { get; set; }
+
+    [JsonProperty("unitPrice")]
+    public decimal UnitPrice { get; set; }
+
+    [JsonProperty("vatRate")]
+    public decimal VatRate { get; set; }
+}
+
+public sealed class EconomicTotals
+{
+    [JsonProperty("netAmount")]
+    public decimal NetAmount { get; set; }
+
+    [JsonProperty("vatAmount")]
+    public decimal VatAmount { get; set; }
+
+    [JsonProperty("grossAmount")]
+    public decimal GrossAmount { get; set; }
+}
+
+public sealed class EconomicRecipient
+{
+    [JsonProperty("name")]
+    public string? Name { get; set; }
+
+    [JsonProperty("vatZone")]
+    public EconomicVatZone VatZone { get; set; } = new();
+}
+
+public sealed class EconomicNotes
+{
+    [JsonProperty("textLine1")]
+    public string? TextLine1 { get; set; } = string.Empty;
+
+    [JsonProperty("textLine2")]
+    public string? TextLine2 { get; set; } = string.Empty;
 }

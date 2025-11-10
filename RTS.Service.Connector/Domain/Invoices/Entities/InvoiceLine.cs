@@ -1,32 +1,20 @@
-﻿using CSharpFunctionalExtensions;
-
-namespace RTS.Service.Connector.Domain.Invoices.Entities
+﻿namespace RTS.Service.Connector.Domain.Invoices.Entities
 {
-    public class InvoiceLine : Entity<int>
+    public class InvoiceLine
     {
-        public string Description { get; private set; } = string.Empty;
-        public int Quantity { get; private set; }
-        public decimal UnitPrice { get; private set; }
-        public decimal TotalLinePrice { get; private set; } // Totalprice = Quantity * UnitPrice 
-        public decimal VatRate { get; private set; }
-        public decimal LineVatAmount { get; private set; } // VatAmount = TotalLinePrice * VatRate
+        public int Id { get; set; }
+        public int InvoiceId { get; set; }  // FK
 
-        public InvoiceLine() { }
+        public int LineNumber { get; set; }
+        public string ProductNumber { get; set; } = null!;
+        public string Description { get; set; } = null!;
+        public decimal Quantity { get; set; }
+        public decimal UnitPrice { get; set; }
+        public decimal DiscountPercent { get; set; }
+        public decimal VatRate { get; set; }
+        public decimal LineTotal { get; set; }
 
-        public InvoiceLine(int id, string description, int quantity, decimal unitPrice, decimal vatRate)
-        {
-            Id = id;
-            Description = description;
-            Quantity = quantity;
-            UnitPrice = unitPrice;
-            TotalLinePrice = quantity * unitPrice;
-            VatRate = vatRate;
-            LineVatAmount = TotalLinePrice * vatRate;
-        }
-
-        public InvoiceLine(string description, int quantity, decimal unitPrice, decimal vatRate) : this(0, description, quantity, unitPrice, vatRate)
-        {
-        }
-
+        // Navigation
+        public Invoice Invoice { get; set; } = null!;
     }
 }

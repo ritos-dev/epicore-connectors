@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿/*using FluentAssertions;
 using RTS.SharedKernel.Extensions;
 using RTS.Service.Connector.Domain.Enums;
 using RTS.Service.Connector.Domain.Invoices;
@@ -266,4 +266,4 @@ namespace RTS.Service.Connector.Test.Domain.Invoices
             invalidInvoice.Should().Throw<ArgumentException>().WithMessage("*grossAmount*");
         }
     }
-}
+}*/

@@ -5,7 +5,7 @@ namespace RTS.Service.Connector.Interfaces
 {
     public interface ITracelinkClient
     {
-        Task<ApiResult<OrderDto>> GetOrderAsync(string orderId,CancellationToken cancellationToken = default);
-        Task<ApiResult<OrderDto>> GetOrderByIdAsync(string orderId, CancellationToken cancellationToken = default);
+        Task<ApiResult<TracelinkOrderDto>> GetOrderAsync(string orderId,CancellationToken cancellationToken = default);
+        Task<ApiResult<TracelinkOrderDto>> GetOrderByIdAsync(string orderId, CancellationToken cancellationToken = default);
     }
 }
