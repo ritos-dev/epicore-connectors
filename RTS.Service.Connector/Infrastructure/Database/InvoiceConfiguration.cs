@@ -13,9 +13,13 @@ namespace RTS.Service.Connector.Infrastructure.Persistence.Configurations
 
             builder.HasKey(i => i.Id);
 
-            builder.Property(i => i.OrderNumber)
+            builder.Property(i => i.CrmId)
                    .IsRequired()
-                   .HasMaxLength(50);
+                   .HasMaxLength(20);
+
+            builder.Property(i => i.TLOrderNumber)
+                   .IsRequired()
+                   .HasMaxLength(20);
 
             builder.Property(i => i.CustomerName)
                    .IsRequired()
@@ -25,22 +29,22 @@ namespace RTS.Service.Connector.Infrastructure.Persistence.Configurations
                    .HasConversion<int>()
                    .IsRequired();
 
+            builder.Property(i => i.InvoiceCreateDate)
+                   .HasDefaultValueSql("GETUTCDATE()");
+
+            builder.Property(i => i.InvoiceAmount)
+                   .HasColumnType("decimal(18,2)")
+                   .HasDefaultValue(0);
+
+            builder.Property(i => i.InvoiceNumber);
+
             builder.Property(i => i.Status)
                    .IsRequired()
                    .HasMaxLength(20);
 
-            builder.Property(i => i.TotalAmount)
-                   .HasColumnType("decimal(18,2)")
-                   .HasDefaultValue(0);
-
-            builder.Property(i => i.CreatedAt)
-                   .HasDefaultValueSql("GETUTCDATE()");
-
-            builder.HasIndex(i => i.OrderNumber)
-                   .HasDatabaseName("IX_Invoices_OrderNumber");
-
-            builder.Property(i => i.CrmId)
-                   .IsRequired();
+            builder.HasMany(i => i.Lines) 
+                   .WithOne()
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

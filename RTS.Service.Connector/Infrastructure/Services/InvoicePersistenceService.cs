@@ -22,21 +22,22 @@ namespace RTS.Service.Connector.Infrastructure.Services
             try
             {
                 var draft = JsonConvert.DeserializeObject<EconomicInvoiceDraft>(invoiceJson);
-                if (draft == null)
+                if (draft is null)
                 {
-                    _logger.LogInformation("[Database] Invoice draft deserialization failed skipping save for order {OrderNumber}.", orderNumber);
+                    _logger.LogWarning("[Database] Deserialization failed for order {OrderNumber}.", orderNumber);
                     return;
                 }
 
-                var invoice = DbInvoiceMapper.ToEntity(draft, orderNumber, crmNumber);
-                _context.Invoices.Add(invoice);
+                var entity = DbInvoiceMapper.ToEntity(draft, orderNumber, crmNumber);
+
+                await _context.Invoices.AddAsync(entity, cancellationToken);
                 await _context.SaveChangesAsync(cancellationToken);
 
-                _logger.LogInformation("[Database] Saved invoice for order {OrderNumber} ({Lines} lines).", orderNumber, invoice.Lines.Count);
+                _logger.LogInformation("[Database] Invoice saved for order {OrderNumber} with {LineCount} lines.", orderNumber, entity.Lines.Count);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[Database] Failed to persist invoice for order {OrderNumber}.", orderNumber);
+                _logger.LogError(ex, "[Database] Error saving invoice for order {OrderNumber}.", orderNumber);
                 throw;
             }
         }
@@ -48,13 +49,21 @@ namespace RTS.Service.Connector.Infrastructure.Services
         {
             var invoice = new Invoice
             {
-                OrderNumber = orderNumber,
+                TLOrderNumber = orderNumber,
                 CrmId = crmNumber,
                 CustomerName = draft.Recipient?.Name ?? "Unknown",
-                Currency = Enum.TryParse(draft.Currency, out Currency parsed) ? parsed : Currency.DKK,
-                InvoiceDate = DateTime.UtcNow,
-                TotalAmount = draft.Totals?.GrossAmount ?? 0,
-                Status = "Draft"
+
+                Currency = Enum.TryParse(draft.Currency, true, out Currency parsed)
+                    ? parsed
+                    : Currency.DKK,
+
+                InvoiceCreateDate = DateTime.UtcNow,
+                InvoiceDueDate = CalcDueTime(draft.PaymentTerms),
+                InvoiceAmount = draft.Totals?.GrossAmount ?? 0,
+                InvoiceNumber = 0, // invoice number out of max invoices for CRM order
+
+                Status = "Draft",
+                UpdatedAt = DateTime.UtcNow
             };
 
             if (draft.Lines != null)
@@ -63,7 +72,7 @@ namespace RTS.Service.Connector.Infrastructure.Services
                 {
                     invoice.Lines.Add(new InvoiceLine
                     {
-                        Description = line.Description ?? "",
+                        Description = line.Description ?? string.Empty,
                         Quantity = line.Quantity,
                         UnitPrice = line.UnitPrice,
                         VatRate = line.VatRate,
@@ -72,7 +81,22 @@ namespace RTS.Service.Connector.Infrastructure.Services
                 }
             }
 
-            return invoice; 
+            return invoice;
+        }
+
+        private static DateTime? CalcDueTime(EconomicPaymentTerms? terms)
+        {
+            if (terms == null)
+                return DateTime.UtcNow.AddDays(14);
+
+            return DateTime.UtcNow.AddDays(terms.PaymentTermsNumber
+            switch
+            {
+                0 => 8,
+                1 => 14,
+                2 => 30,
+                _ => 14
+            });
         }
     }
 }
