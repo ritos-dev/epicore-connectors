@@ -26,7 +26,7 @@ namespace RTS.Service.Connector.Infrastructure.Economic
         public async Task<ApiResult<string>> GetOrderDraftIfExistsAsync(string orderNumber, CancellationToken cancellationToken = default)
         {
             // FOR TESTING ONLY! Manual override
-            if (orderNumber == "24056")
+            if (orderNumber != null)
             {
                 _logger.LogInformation("Overriding TraceLink order nr.");
                 orderNumber = "1";

@@ -64,6 +64,15 @@ namespace RTS.Service.Connector.Infrastructure
 
                     _logger.LogInformation("[Tracelink] Extracted CRM {crmNumber} for order {OrderNumber}.", crmNumber, orderNumber);
 
+
+                    // Save order to database
+                    using (var scope = _scopeFactory.CreateScope())
+                    {
+                        var persistence = scope.ServiceProvider.GetRequiredService<TracelinkPersistenceService>();
+                        await persistence.SaveOrderAsync(fullResult.Data!);
+                        _logger.LogInformation("[Database] Order information saved successfully for order {order.OrderNumber}", orderNumber);
+                    }
+
                     // Fetch order draft from Economic
                     var draftResult = await _economicClient.GetOrderDraftIfExistsAsync(orderNumber, stoppingToken);
                     if (!draftResult.IsSuccess)
@@ -88,8 +97,8 @@ namespace RTS.Service.Connector.Infrastructure
                     using (var scope = _scopeFactory.CreateScope())
                     {
                         var persistence = scope.ServiceProvider.GetRequiredService<InvoicePersistenceService>();
-                        await persistence.SaveAsync(invoiceResult.Data!, orderNumber, crmNumber!, stoppingToken);
-                        _logger.LogInformation("[Database] Invoice persisted successfully for order {OrderNumber} with CRM {crmNumber}", orderNumber, crmNumber);
+                        await persistence.SaveInvoiceAsync(invoiceResult.Data!, orderNumber, crmNumber!, stoppingToken);
+                        _logger.LogInformation("[Database] Invoice information saved successfully for order {OrderNumber} with CRM {crmNumber}", orderNumber, crmNumber);
                     }
                 }
                 catch (Exception ex)

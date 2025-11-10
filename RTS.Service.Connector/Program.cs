@@ -81,7 +81,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString);
 });
 
+// Database related stuff
 builder.Services.AddScoped<InvoicePersistenceService>();
+builder.Services.AddScoped<TracelinkPersistenceService>();
 
 // Kestrel configuration to support HTTP/2
 builder.WebHost.ConfigureKestrel(options =>

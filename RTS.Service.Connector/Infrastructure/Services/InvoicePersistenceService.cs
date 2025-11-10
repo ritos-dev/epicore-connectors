@@ -1,8 +1,8 @@
 ﻿using RTS.Service.Connector.DTOs;
+using RTS.Service.Connector.Domain.Enums;
 using RTS.Service.Connector.Domain.Invoices.Entities;
 
 using Newtonsoft.Json;
-using RTS.Service.Connector.Domain.Enums;
 
 namespace RTS.Service.Connector.Infrastructure.Services
 {
@@ -17,14 +17,14 @@ namespace RTS.Service.Connector.Infrastructure.Services
             _logger = logger;
         }
 
-        public async Task SaveAsync(string invoiceJson, string orderNumber, string crmNumber, CancellationToken cancellationToken)
+        public async Task SaveInvoiceAsync(string invoiceJson, string orderNumber, string crmNumber, CancellationToken cancellationToken)
         {
             try
             {
                 var draft = JsonConvert.DeserializeObject<EconomicInvoiceDraft>(invoiceJson);
                 if (draft == null)
                 {
-                    _logger.LogWarning("[Database] Invoice draft deserialization failed skipping save for order {OrderNumber}.", orderNumber);
+                    _logger.LogInformation("[Database] Invoice draft deserialization failed skipping save for order {OrderNumber}.", orderNumber);
                     return;
                 }
 

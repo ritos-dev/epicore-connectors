@@ -1,10 +1,10 @@
 ﻿using Newtonsoft.Json;
-using RTS.Service.Connector.Infrastructure;
-
+using Newtonsoft.Json.Linq;
+using System.ComponentModel;
 
 namespace RTS.Service.Connector.DTOs
 {
-    public sealed record TracelinkOrderDto
+    public class TracelinkOrderDto: JsonConverter<TracelinkOrderSourceData>
     {
         [JsonProperty("order_id")]
         public string OrderId { get; init; } = string.Empty;
@@ -31,14 +31,32 @@ namespace RTS.Service.Connector.DTOs
         public DateTime? DeadlineDate { get; init; }
 
         [JsonProperty("order_src_data")]
-        [JsonConverter(typeof(CustomJsonConveter))]
+        [JsonConverter(typeof(TracelinkOrderDto))]
         public TracelinkOrderSourceData? OrderSrcData { get; init; }
 
         [JsonProperty("customer_id")]
         public int CustomerId { get; init; }
 
         [JsonProperty("update_date")]
-        public DateTime? UpdatedAt { get; init; }
+        public DateTime? UpdatedAt { get; init; } 
+
+        public override TracelinkOrderSourceData? ReadJson(JsonReader reader, Type objectType, TracelinkOrderSourceData? existing, bool isExisting, JsonSerializer serializer)
+        {
+            try
+            {
+            var jsonString = (string)reader.Value!;
+            return JsonConvert.DeserializeObject<TracelinkOrderSourceData>(jsonString);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public override void WriteJson(JsonWriter writer, TracelinkOrderSourceData? value, JsonSerializer serializer)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public sealed class TracelinkOrderSourceData
