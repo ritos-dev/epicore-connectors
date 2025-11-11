@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using RTS.Service.Connector.Domain.Invoices.Entities;
 
-namespace RTS.Service.Connector.Infrastructure.Persistence.Configurations
+namespace RTS.Service.Connector.Infrastructure.Configurations
 {
     public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
     {
