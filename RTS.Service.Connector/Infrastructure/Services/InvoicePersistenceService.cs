@@ -57,6 +57,7 @@ namespace RTS.Service.Connector.Infrastructure.Services
                     ? parsed
                     : Currency.DKK,
 
+                DraftInvoiceNumber = draft.DraftInvoiceNumber, 
                 InvoiceCreateDate = DateTime.UtcNow,
                 InvoiceDueDate = CalcDueTime(draft.PaymentTerms),
                 InvoiceAmount = draft.Totals?.GrossAmount ?? 0,

@@ -4,8 +4,8 @@ namespace RTS.Service.Connector.DTOs;
 
 public sealed class EconomicInvoiceDraft
 {
-    [JsonProperty("invoiceId")]
-    public string? InvoiceId { get; set; }
+    [JsonProperty("draftInvoiceNumber")]
+    public int? DraftInvoiceNumber { get; set; }
 
     [JsonProperty("date")]
     public string Date { get; set; } = DateTime.UtcNow.ToString("yyyy-MM-dd");

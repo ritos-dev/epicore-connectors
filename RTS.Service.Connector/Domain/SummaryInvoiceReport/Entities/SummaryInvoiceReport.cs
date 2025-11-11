@@ -16,7 +16,7 @@ Tabellen skal vise et overblik over fakturaer tilknyttet til en CRM "kunde/ordre
 4. Vise valutaen for denne ordre
 5. Vise status som "åben" eller "lukket" sag (når alle fakturaer er betalt i systemet)
 
-
 CRM; navn på kunden ; antal fakturaer i alt; total betaling; valuta; status; 
+
 */
 

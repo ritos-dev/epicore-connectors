@@ -7,7 +7,7 @@ namespace RTS.Service.Connector.Domain.Invoices.Entities
         public int Id { get; set; }
         public string CrmId { get; set; } = string.Empty;
         public string? TLOrderNumber { get; set; }
-        public string? InvoiceId { get; set; }
+        public int? DraftInvoiceNumber { get; set; }
         public string CustomerName { get; set; } = null!;
         public Currency Currency { get; set; } = Currency.DKK;
         public DateTime InvoiceCreateDate { get; set; } = DateTime.UtcNow;
