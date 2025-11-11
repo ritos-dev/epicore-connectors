@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace RTS.Service.Connector.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251110145003_InvoiceTableCompleteMinusTargetSourceSystem")]
+    partial class InvoiceTableCompleteMinusTargetSourceSystem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -42,9 +45,6 @@ namespace RTS.Service.Connector.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<int?>("DraftInvoiceNumber")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("InvoiceAmount")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(18,2)")
@@ -57,6 +57,9 @@ namespace RTS.Service.Connector.Migrations
 
                     b.Property<DateTime?>("InvoiceDueDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("InvoiceId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("InvoiceNumber")
                         .HasColumnType("int");

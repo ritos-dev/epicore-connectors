@@ -1,9 +1,11 @@
 ﻿using RTS.Service.Connector.Interfaces;
+using RTS.Service.Connector.DTOs;
 
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Text;
+
 
 namespace RTS.Service.Connector.Infrastructure.Economic
 {
@@ -62,30 +64,20 @@ namespace RTS.Service.Connector.Infrastructure.Economic
                 return await Fail<string>(response, cancellationToken);
 
             var result = await response.Content.ReadAsStringAsync(cancellationToken);
-            LogDraftInvoiceNumber(result);
+
+            // Invoice draft number from economic
+            var dto = JsonConvert.DeserializeObject<EconomicInvoiceDraft>(result);
+            
+            if(dto?.DraftInvoiceNumber != null)
+            {
+                _logger.LogInformation("[Economic] Draft invoice created successfully. Invoice number: {DraftNumber}", dto.DraftInvoiceNumber);
+            }
+            else
+            {
+                _logger.LogInformation("[Economic] Invoice number not found.");
+            }
+
             return ApiResult<string>.Success(result);
-        }
-
-        private void LogDraftInvoiceNumber(string jsonResponse)
-        {
-            try
-            {
-                var root = JObject.Parse(jsonResponse);
-                var draftNumber = root["draftInvoiceNumber"]?.Value<int>();
-
-                if (draftNumber != null)
-                {
-                    _logger.LogInformation("[Economic] Draft invoice created successfully. Invoice number: {DraftNumber}", draftNumber);
-                }
-                else
-                {
-                    _logger.LogInformation("[Economic] Invoice number not found.");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "[Economic] Could not parse invoice draft response.");
-            }
         }
 
         private async Task<ApiResult<T>> Fail<T>(HttpResponseMessage response, CancellationToken token)

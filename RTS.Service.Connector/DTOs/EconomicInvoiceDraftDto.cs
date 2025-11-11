@@ -4,6 +4,9 @@ namespace RTS.Service.Connector.DTOs;
 
 public sealed class EconomicInvoiceDraft
 {
+    [JsonProperty("draftInvoiceNumber")]
+    public int? DraftInvoiceNumber { get; set; }
+
     [JsonProperty("date")]
     public string Date { get; set; } = DateTime.UtcNow.ToString("yyyy-MM-dd");
 
@@ -23,7 +26,7 @@ public sealed class EconomicInvoiceDraft
     public EconomicRecipient Recipient { get; set; } = new();
 
     [JsonProperty("references")]
-    public EconomicReferences References { get; set; } = new() { Other = "TraceLink" };
+    public EconomicReferences References { get; set; } = new();
 
     [JsonProperty("totals")]
     public EconomicTotals Totals { get; set; } = new();
