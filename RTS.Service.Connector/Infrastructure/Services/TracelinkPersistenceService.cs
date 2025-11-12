@@ -40,7 +40,7 @@ namespace RTS.Service.Connector.Infrastructure.Services
                     CompanyId = dto.Company,
                     OrderNumber = int.TryParse(dto.Number, out var number) ? number : 0,
                     CustomerName = dto.Name,
-                    CrmId = dto.OrderSrcData?.Number
+                    CrmId = dto.CrmId
                 };
             }
         }

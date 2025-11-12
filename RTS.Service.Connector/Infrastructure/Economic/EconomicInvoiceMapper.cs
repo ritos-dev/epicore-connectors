@@ -35,16 +35,16 @@ namespace RTS.Service.Connector.Infrastructure.Economic
                 Recipient = new EconomicRecipient
                 {
                     Name = root["recipient"]?["name"]?.ToString(),
-                    
+
                     VatZone = new EconomicVatZone
                     {
                         VatZoneNumber = (int)(root["recipient"]?["vatZone"]?["vatZoneNumber"] ?? 0)
                     }
                 },
 
-                References = new EconomicReferences 
-                { 
-                    Other = $"Kunde: {crmNumber}" ?? "Kunde: Ukendt." 
+                References = new EconomicReferences
+                {
+                    Other = $"Kunde: {crmNumber}" ?? "Kunde: Ukendt."
                 }
             };
 

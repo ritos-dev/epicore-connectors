@@ -26,7 +26,7 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
             try
             {
                 var url = $"{_options.BaseUrl}{_options.Endpoints.GetOrderList}?token={_options.ApiToken}";
-                _logger.LogInformation("[Tracelink] Fetching TraceLink order {OrderNumber}", orderNumber);
+                _logger.LogInformation("[Tracelink Client] Fetching TraceLink order {OrderNumber}", orderNumber);
 
                 var response = await _client.PostAsync(url, null, cancellationToken);
                 if (!response.IsSuccessStatusCode)
@@ -41,17 +41,14 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
 
                 if (match is null)
                 {
-                    _logger.LogWarning("[Tracelink] No TraceLink order found for {OrderNumber}", orderNumber);
                     return new ApiResult<TracelinkOrderDto>(false, null, "Order not found");
                 }
 
-                _logger.LogInformation("[Tracelink] Found order. Number: {Number}, Id: {Id}", match.Number, match.OrderId);
-                return new ApiResult<TracelinkOrderDto>(true,
-                    new TracelinkOrderDto { OrderId = match.OrderId, Number = match.Number});
+                return new ApiResult<TracelinkOrderDto>(true, new TracelinkOrderDto { OrderId = match.OrderId, Number = match.Number, Name = match.Name });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[Tracelink] Error fetching TraceLink order {OrderNumber}", orderNumber);
+                _logger.LogError(ex, "[Tracelink Client] Error fetching TraceLink order {OrderNumber}", orderNumber);
                 return new ApiResult<TracelinkOrderDto>(false, null, ex.Message);
             }
         }
@@ -69,7 +66,6 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
                     return await Fail<TracelinkOrderDto>(response, cancellationToken);
 
                 var json = await response.Content.ReadAsStringAsync(cancellationToken);
-                //_logger.LogInformation("[Tracelink] Raw JSON {OrderId}: {Json}", orderId, json);
 
                 var dto = TracelinkParser.ExtractSingleOrder(json);
 

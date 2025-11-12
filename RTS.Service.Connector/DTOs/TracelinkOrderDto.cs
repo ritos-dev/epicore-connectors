@@ -1,22 +1,26 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.ComponentModel;
 
 namespace RTS.Service.Connector.DTOs
 {
-    public class TracelinkOrderDto: JsonConverter<TracelinkOrderSourceData>
+    // Order list data
+    public class TracelinkOrderListDto
     {
+
         [JsonProperty("order_id")]
         public string OrderId { get; init; } = string.Empty;
-
-        [JsonProperty("company")]
-        public string Company { get; init; } = string.Empty;
 
         [JsonProperty("number")]
         public string Number { get; init; } = string.Empty;
 
         [JsonProperty("name")]
         public string Name { get; init; } = string.Empty;
+    }
+
+    // Order specific data
+    public class TracelinkOrderDto
+    {
+        [JsonProperty("company")]
+        public string Company { get; init; } = string.Empty;
 
         [JsonProperty("description")]
         public string? Description { get; init; }
@@ -30,38 +34,30 @@ namespace RTS.Service.Connector.DTOs
         [JsonProperty("deadline_date")]
         public DateTime? DeadlineDate { get; init; }
 
-        [JsonProperty("order_src_data")]
-        [JsonConverter(typeof(TracelinkOrderDto))]
-        public TracelinkOrderSourceData? OrderSrcData { get; init; }
-
-        [JsonProperty("customer_id")]
-        public int CustomerId { get; init; }
-
         [JsonProperty("update_date")]
-        public DateTime? UpdatedAt { get; init; } 
-
-        public override TracelinkOrderSourceData? ReadJson(JsonReader reader, Type objectType, TracelinkOrderSourceData? existing, bool isExisting, JsonSerializer serializer)
-        {
-            try
-            {
-            var jsonString = (string)reader.Value!;
-            return JsonConvert.DeserializeObject<TracelinkOrderSourceData>(jsonString);
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        public override void WriteJson(JsonWriter writer, TracelinkOrderSourceData? value, JsonSerializer serializer)
-        {
-            throw new NotImplementedException();
-        }
+        public DateTime? UpdatedAt { get; init; }
     }
 
-    public sealed class TracelinkOrderSourceData
+    // Customer specific data
+    public class TracelinkCustomerDto
+    {
+        [JsonProperty("customer_id")]
+        public string? CustomerId { get; init; } // Specific customer id in tracelink
+
+        [JsonProperty("address")]
+        public string? CustomerAdress { get; init; }
+
+        [JsonProperty("postalcode")]
+        public string? CustomerPostalcode { get; init; }
+
+        [JsonProperty("city")]
+        public string? CustomerCity { get; init; }
+    }
+
+    // CRM Id for tracking projects
+    public class TracelinkCRMDto
     {
         [JsonProperty("number")]
-        public string? Number { get; init; }
+        public string? CrmNumber { get; init; } // Specific customer id in tracelink
     }
 }

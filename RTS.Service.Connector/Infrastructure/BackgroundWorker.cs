@@ -41,24 +41,26 @@ namespace RTS.Service.Connector.Infrastructure
                     var tracelinkResult = await _tracelinkClient.GetOrderAsync(orderNumber, stoppingToken);
                     if (!tracelinkResult.IsSuccess)
                     {
-                        _logger.LogWarning("[Tracelink] Failed to fetch Tracelink order {OrderNumber}: {Error}", orderNumber, tracelinkResult.ErrorMessage);
+                        _logger.LogInformation("[Tracelink Worker] Failed to fetch Tracelink order {OrderNumber}: {Error}", orderNumber, tracelinkResult.ErrorMessage);
                         continue;
                     }
+
+                    _logger.LogInformation("[Tracelink Worker] Order {OrderNumber}, {Name}, {CrmId} found and fetched successfully", orderNumber, tracelinkResult.Data!.Name, tracelinkResult.Data.CrmId);
 
                     // Get the specific order from the list
                     var fullResult = await _tracelinkClient.GetOrderByIdAsync(tracelinkResult.Data!.OrderId, stoppingToken);
                     if(!fullResult.IsSuccess)
                     {
-                        _logger.LogError("[Tracelink] Failed to fetch full order. {OrderNumber:}, {Error}", orderNumber, fullResult.ErrorMessage);
+                        _logger.LogInformation("[Tracelink Worker] Failed to fetch full order. {OrderNumber:}, {Error}", orderNumber, fullResult.ErrorMessage);
                         continue;
                     }
 
                     // Get crm
-                    var crmNumber = fullResult.Data?.OrderSrcData?.Number;
+                    var crmNumber = fullResult.Data?.CrmId;
 
                     if (string.IsNullOrWhiteSpace(crmNumber))
                     {
-                        _logger.LogWarning("[Tracelink] CRM not found for order {OrderNumber}.", orderNumber);
+                        _logger.LogInformation("[Tracelink Worker] CRM not found for order {OrderNumber}.", orderNumber);
                         continue;
                     }
 
@@ -77,7 +79,7 @@ namespace RTS.Service.Connector.Infrastructure
                     var draftResult = await _economicClient.GetOrderDraftIfExistsAsync(orderNumber, stoppingToken);
                     if (!draftResult.IsSuccess)
                     {
-                        _logger.LogWarning("[Economic] Order {OrderNumber} not found or failed: {Error}", orderNumber, draftResult.ErrorMessage);
+                        _logger.LogInformation("[Economic] Order {OrderNumber} not found or failed: {Error}", orderNumber, draftResult.ErrorMessage);
                         continue;
                     }
 
@@ -87,7 +89,7 @@ namespace RTS.Service.Connector.Infrastructure
                     var invoiceResult = await _economicClient.CreateInvoiceDraftAsync(draftResult.Data!, orderNumber, crmNumber!, stoppingToken);
                     if (!invoiceResult.IsSuccess)
                     {
-                        _logger.LogWarning("[Economic] Failed to create invoice draft for order {OrderNumber}: {Error}", orderNumber, invoiceResult.ErrorMessage);
+                        _logger.LogInformation("[Economic] Failed to create invoice draft for order {OrderNumber}: {Error}", orderNumber, invoiceResult.ErrorMessage);
                         continue;
                     }
 
@@ -103,7 +105,7 @@ namespace RTS.Service.Connector.Infrastructure
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "[Connector] Error while processing Tracelink order from queue.");
+                    _logger.LogInformation(ex, "[Connector] Error while processing Tracelink order from queue.");
                 }
             }
 

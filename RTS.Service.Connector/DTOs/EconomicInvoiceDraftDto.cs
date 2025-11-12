@@ -41,7 +41,16 @@ public sealed class EconomicInvoiceDraft
 public sealed class EconomicCustomer 
 {
     [JsonProperty("customerNumber")]
-    public int CustomerNumber { get; set; } 
+    public int CustomerNumber { get; set; }
+
+    [JsonProperty("customerName")]
+    public string? CustomerName { get; set; }
+
+    [JsonProperty("customerAdress")]
+    public string? CustomerAdress { get; set; }
+
+    [JsonProperty("customerZipCode")]
+    public string? CustomerZipCode { get; set; }
 }
 public sealed class EconomicPaymentTerms 
 {
