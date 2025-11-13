@@ -53,7 +53,7 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
         }
 
         // Get order specific data
-        public async Task<ApiResult<TracelinkDto>> GetOrderByIdAsync(string orderId, CancellationToken token)
+        public async Task<ApiResult<TracelinkOrderDto>> GetOrderByIdAsync(string orderId, CancellationToken token)
         {
             try
             {
@@ -62,7 +62,7 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    return await Fail<TracelinkDto>(response, token);
+                    return await Fail<TracelinkOrderDto>(response, token);
                 }
 
                 var json = await response.Content.ReadAsStringAsync(token);
@@ -71,16 +71,16 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
                 if (dto == null)
                 {
                     _logger.LogWarning("[Tracelink Client] Could not parse TraceLink order {OrderId}", orderId);
-                    return ApiResult<TracelinkDto>.Failure("Invalid JSON structure");
+                    return ApiResult<TracelinkOrderDto>.Failure("Invalid JSON structure");
                 }
 
                 _logger.LogInformation("[Tracelink Client] Fetched TraceLink order {OrderId} successfully", orderId);
-                return new ApiResult<TracelinkDto>(true, dto);
+                return new ApiResult<TracelinkOrderDto>(true, dto);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[Tracelink Client] Error fetching TraceLink order {OrderId}", orderId);
-                return ApiResult<TracelinkDto>.Failure(ex.Message);
+                return ApiResult<TracelinkOrderDto>.Failure(ex.Message);
             }
         }
 

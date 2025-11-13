@@ -1,5 +1,6 @@
 ﻿using RTS.Service.Connector.Interfaces;
 using RTS.Service.Connector.Infrastructure.Services;
+using RTS.Service.Connector.Infrastructure.Tracelink;
 
 namespace RTS.Service.Connector.Infrastructure
 {
@@ -37,70 +38,90 @@ namespace RTS.Service.Connector.Infrastructure
                     var orderNumber = await _queue.DequeueAsync(stoppingToken);
                     _logger.LogInformation("[Connector] Dequeued order {OrderNumber} fetching from Tracelink...", orderNumber);
 
-                    // Fint the order in the list 
-                    var tracelinkResult = await _tracelinkClient.GetOrderListAsync(orderNumber, stoppingToken);
-                    if (!tracelinkResult.IsSuccess)
+                    // Find the order in the list 
+                    var listResult = await _tracelinkClient.GetOrderListAsync(orderNumber, stoppingToken);
+
+                    if (!listResult.IsSuccess)
                     {
-                        _logger.LogInformation("[Tracelink Worker] Failed to fetch Tracelink order {OrderNumber}: {Error}", orderNumber, tracelinkResult.ErrorMessage);
-                        continue;
+                        _logger.LogInformation("[Worker] Failed to find order in list");
+                        return;
                     }
 
-                    _logger.LogInformation("[Tracelink Worker] Order {OrderNumber}, {Name}, {CrmId} found and fetched successfully", orderNumber, tracelinkResult.Data!.Name, tracelinkResult.Data.CrmId);
+                    var orderId = listResult.Data!.OrderId;
+                    var customerName = listResult.Data!.Name;
+
+                    _logger.LogInformation("[Worker] Order {OrderId} for {CustomerName} found successfully", orderId, customerName);
 
                     // Get the specific order from the list
-                    var fullResult = await _tracelinkClient.GetOrderByIdAsync(tracelinkResult.Data!.OrderId, stoppingToken);
-                    if(!fullResult.IsSuccess)
+                    var orderResult = await _tracelinkClient.GetOrderByIdAsync(orderId, stoppingToken);
+                    
+                    if(!orderResult.IsSuccess)
                     {
-                        _logger.LogInformation("[Tracelink Worker] Failed to fetch full order. {OrderNumber:}, {Error}", orderNumber, fullResult.ErrorMessage);
-                        continue;
+                        _logger.LogInformation("[Worker] Failed to fetch full order.");
+                        return;
                     }
+
+                    var orderDetails = orderResult.Data; // for specifics look into TracelinkOrderDto
+
+                    // Find the customer in the list
+                    var customerResult = await _tracelinkClient.GetCustomerListAsync(customerName, stoppingToken);
+
+                    if (!customerResult.IsSuccess)
+                    {
+                        _logger.LogInformation("[Worker] Failed to fetch customer.");
+                        return;
+                    }
+
+                    var customerId = customerResult.Data!.CustomerId;
 
                     // Get crm
-                    var crmNumber = fullResult.Data?.CrmId;
+                    var crmResult = await _tracelinkClient.GetCrmListAsync(customerId, stoppingToken);
 
-                    if (string.IsNullOrWhiteSpace(crmNumber))
+                    if (!crmResult.IsSuccess)
                     {
-                        _logger.LogInformation("[Tracelink Worker] CRM not found for order {OrderNumber}.", orderNumber);
+                        _logger.LogInformation("[Worker] Failed to find CRM.");
                         continue;
                     }
 
-                    _logger.LogInformation("[Tracelink] Extracted CRM {crmNumber} for order {OrderNumber}.", crmNumber, orderNumber);
+                    var crmNumber = crmResult.Data!.CrmNumber;
 
+                    // Combined tracelink dto
+                    var combinedDto = TracelinkOrderFactory.Create(listResult.Data!, orderResult.Data!, customerResult.Data, crmResult.Data);
 
                     // Save order to database
                     using (var scope = _scopeFactory.CreateScope())
                     {
                         var persistence = scope.ServiceProvider.GetRequiredService<TracelinkPersistenceService>();
-                        await persistence.SaveOrderAsync(fullResult.Data!);
-                        _logger.LogInformation("[Database] Order information saved successfully for order {order.OrderNumber}", orderNumber);
+                        await persistence.SaveOrderAsync(combinedDto);
+                        _logger.LogInformation("[Worker] Order saved successfully for TraceLink order {OrderNumber}", combinedDto.OrderNumber);
                     }
 
                     // Fetch order draft from Economic
-                    var draftResult = await _economicClient.GetOrderDraftIfExistsAsync(orderNumber, stoppingToken);
+                    var draftResult = await _economicClient.GetOrderDraftIfExistsAsync(combinedDto.OrderNumber, stoppingToken);
                     if (!draftResult.IsSuccess)
                     {
-                        _logger.LogInformation("[Economic] Order {OrderNumber} not found or failed: {Error}", orderNumber, draftResult.ErrorMessage);
+                        _logger.LogInformation("[Worker] Order {OrderNumber} not found or failed: {Error}", orderNumber, draftResult.ErrorMessage);
                         continue;
                     }
 
-                    _logger.LogInformation("[Economic] Creating invoice draft for Tracelink order {OrderNumber}", orderNumber);
+                    _logger.LogInformation("[Worker] Creating invoice draft for Tracelink order {OrderNumber}", orderNumber);
 
                     // Create invoice draft in Economic
-                    var invoiceResult = await _economicClient.CreateInvoiceDraftAsync(draftResult.Data!, orderNumber, crmNumber!, stoppingToken);
+                    var invoiceResult = await _economicClient.CreateInvoiceDraftAsync(draftResult.Data!, combinedDto.OrderNumber, combinedDto.CrmNumber!, stoppingToken);
                     if (!invoiceResult.IsSuccess)
                     {
-                        _logger.LogInformation("[Economic] Failed to create invoice draft for order {OrderNumber}: {Error}", orderNumber, invoiceResult.ErrorMessage);
+                        _logger.LogInformation("[Worker] Failed to create invoice draft for order {OrderNumber}", orderNumber);
                         continue;
                     }
 
-                    _logger.LogInformation("[Economic] Invoice draft created successfully for order {OrderNumber}.", orderNumber);
+                    _logger.LogInformation("[Worker] Invoice draft created successfully for order {OrderNumber}.", orderNumber);
 
                     // Save invoice to database
                     using (var scope = _scopeFactory.CreateScope())
                     {
                         var persistence = scope.ServiceProvider.GetRequiredService<InvoicePersistenceService>();
                         await persistence.SaveInvoiceAsync(invoiceResult.Data!, orderNumber, crmNumber!, stoppingToken);
-                        _logger.LogInformation("[Database] Invoice information saved successfully for order {OrderNumber} with CRM {crmNumber}", orderNumber, crmNumber);
+                        _logger.LogInformation("[Worker] Invoice information saved successfully for order {OrderNumber} with CRM {crmNumber}", orderNumber, crmNumber);
                     }
                 }
                 catch (Exception ex)

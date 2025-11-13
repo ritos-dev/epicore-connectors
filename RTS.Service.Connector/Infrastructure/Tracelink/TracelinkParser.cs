@@ -25,14 +25,14 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
         }
 
         // Extract single order
-        public static TracelinkDto? ExtractSingleOrder(string json)
+        public static TracelinkOrderDto? ExtractSingleOrder(string json)
         {
             try
             {
                 var root = JObject.Parse(json);
                 var orderObj = root["order"] as JObject;
 
-                return orderObj?.ToObject<TracelinkDto>();
+                return orderObj?.ToObject<TracelinkOrderDto>();
             }
             catch
             {

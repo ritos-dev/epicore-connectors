@@ -17,7 +17,7 @@ namespace RTS.Service.Connector.DTOs
     }
 
     // Order specific data
-    public class TracelinkDto
+    public class TracelinkOrderDto
     {
         [JsonProperty("company")]
         public string Company { get; init; } = string.Empty;
@@ -45,7 +45,7 @@ namespace RTS.Service.Connector.DTOs
         public string Name { get; init; } = string.Empty;
 
         [JsonProperty("customer_id")]
-        public string? CustomerId { get; init; } // Specific customer id in tracelink
+        public string CustomerId { get; init; } = string.Empty; // Specific customer id in tracelink
 
         [JsonProperty("address")]
         public string? CustomerAdress { get; init; }
@@ -61,7 +61,7 @@ namespace RTS.Service.Connector.DTOs
     public class TracelinkCRMDto
     {
         [JsonProperty("customer_id")]
-        public string? CustomerId { get; init; } // Specific customer id in tracelink
+        public string? CustomerId { get; init; } = string.Empty; // Specific customer id in tracelink
 
         [JsonProperty("number")]
         public string? CrmNumber { get; init; } // Specific customer id in tracelink

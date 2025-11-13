@@ -16,7 +16,7 @@ namespace RTS.Service.Connector.Infrastructure.Database
             builder.Property(o => o.OrderNumber)
                 .IsRequired();
 
-            builder.Property(o => o.CompanyId)
+            builder.Property(o => o.CustomerId)
                 .IsRequired()
                 .HasMaxLength(50);
 

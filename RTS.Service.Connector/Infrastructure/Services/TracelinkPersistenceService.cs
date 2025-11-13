@@ -14,7 +14,7 @@ namespace RTS.Service.Connector.Infrastructure.Services
             _logger = logger;
         }
 
-        public async Task SaveOrderAsync(TracelinkDto dto)
+        public async Task SaveOrderAsync(CompleteTracelinkDto dto)
         {
             try
             {
@@ -33,14 +33,14 @@ namespace RTS.Service.Connector.Infrastructure.Services
         }
         public static class TracelinkMapper
         {
-            public static Orders ToEntity(TracelinkDto dto)
+            public static Orders ToEntity(CompleteTracelinkDto dto)
             {
                 return new Orders
                 {
-                    CompanyId = dto.Company,
-                    OrderNumber = int.TryParse(dto.Number, out var number) ? number : 0,
-                    CustomerName = dto.Name,
-                    CrmId = dto.CrmId
+                    CustomerName = dto.CustomerName,
+                    CustomerId = dto.CustomerId,
+                    CrmId = dto.CrmNumber,
+                    OrderNumber = int.TryParse(dto.OrderNumber, out var number) ? number : 0
                 };
             }
         }
