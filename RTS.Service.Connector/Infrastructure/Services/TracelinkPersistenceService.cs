@@ -14,7 +14,7 @@ namespace RTS.Service.Connector.Infrastructure.Services
             _logger = logger;
         }
 
-        public async Task SaveOrderAsync(TracelinkOrderDto dto)
+        public async Task SaveOrderAsync(TracelinkDto dto)
         {
             try
             {
@@ -33,7 +33,7 @@ namespace RTS.Service.Connector.Infrastructure.Services
         }
         public static class TracelinkMapper
         {
-            public static Orders ToEntity(TracelinkOrderDto dto)
+            public static Orders ToEntity(TracelinkDto dto)
             {
                 return new Orders
                 {

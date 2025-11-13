@@ -38,7 +38,7 @@ namespace RTS.Service.Connector.Infrastructure
                     _logger.LogInformation("[Connector] Dequeued order {OrderNumber} fetching from Tracelink...", orderNumber);
 
                     // Fint the order in the list 
-                    var tracelinkResult = await _tracelinkClient.GetOrderAsync(orderNumber, stoppingToken);
+                    var tracelinkResult = await _tracelinkClient.GetOrderListAsync(orderNumber, stoppingToken);
                     if (!tracelinkResult.IsSuccess)
                     {
                         _logger.LogInformation("[Tracelink Worker] Failed to fetch Tracelink order {OrderNumber}: {Error}", orderNumber, tracelinkResult.ErrorMessage);
