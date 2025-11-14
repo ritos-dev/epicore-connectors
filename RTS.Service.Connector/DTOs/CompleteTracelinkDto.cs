@@ -1,6 +1,8 @@
 ﻿// IMPORTANT! This dto is only used to save tracelink data to db AND to help create an invoice in economic.
 // This dto is NOT tied to tracelink endpoints.
 
+using Newtonsoft.Json;
+
 namespace RTS.Service.Connector.DTOs
 {
     public class CompleteTracelinkDto
@@ -22,6 +24,7 @@ namespace RTS.Service.Connector.DTOs
         public string? CustomerAddress { get; set; }
         public string? CustomerPostalCode { get; set; }
         public string? CustomerCity { get; set; }
+        public string CompanyDescription { get; set; } = string.Empty;
 
         // From /object/list/module/crm
         public string? CrmNumber { get; set; }

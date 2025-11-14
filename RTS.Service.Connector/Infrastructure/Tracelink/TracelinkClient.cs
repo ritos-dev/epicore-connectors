@@ -89,7 +89,7 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
         { 
             try
             {
-                var url = $"{_options.Endpoints.GetCustomerList}?token={_options.ApiToken}";
+                var url = $"{_options.BaseUrl}{_options.Endpoints.GetCustomerList}?token={_options.ApiToken}";
                 var response = await _client.PostAsync(url, null, token);
 
                 if (!response.IsSuccessStatusCode)
@@ -120,7 +120,7 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
         {
             try
             {
-                var url = $"{_options.Endpoints.GetCrmList}?token={_options.ApiToken}";
+                var url = $"{_options.BaseUrl}{_options.Endpoints.GetCrmList}?token={_options.ApiToken}";
                 var response = await _client.PostAsync(url, null, token);
 
                 if (!response.IsSuccessStatusCode)

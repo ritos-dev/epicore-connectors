@@ -55,6 +55,9 @@ namespace RTS.Service.Connector.DTOs
 
         [JsonProperty("city")]
         public string? CustomerCity { get; init; }
+
+        [JsonProperty("companydesc")]
+        public string? CompanyDescription { get; init; }
     }
 
     // CRM Id for tracking projects

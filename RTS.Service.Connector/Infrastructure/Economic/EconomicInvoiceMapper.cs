@@ -2,12 +2,13 @@
 using Newtonsoft.Json.Linq;
 
 using RTS.Service.Connector.DTOs;
+using RTS.Service.Connector.Infrastructure.InvoiceSplit;
 
 namespace RTS.Service.Connector.Infrastructure.Economic
 {
-    public static class EconomicInvoiceMapper
+    public class EconomicInvoiceMapper
     {
-        public static EconomicInvoiceDraft MapToInvoiceDraft(string orderJson, string orderNumber, string crmNumber)
+        public EconomicInvoiceDraft MapToInvoiceDraft(string orderJson, CompleteTracelinkDto tracelink, InvoicePart invoicePart)
         {
             var root = JObject.Parse(orderJson);
 
@@ -15,11 +16,15 @@ namespace RTS.Service.Connector.Infrastructure.Economic
             var draft = new EconomicInvoiceDraft
             {
                 Date = DateTime.UtcNow.ToString("yyyy-MM-dd"),
+
                 Currency = root["currency"]?.ToString(),
 
                 Customer = new EconomicCustomer
                 {
-                    CustomerNumber = (int)(root["customer"]?["customerNumber"] ?? 0)
+                    CustomerName = tracelink.CustomerName,
+                    CustomerAddress = tracelink.CustomerAddress,
+                    CustomerZipCode = tracelink.CustomerPostalCode,
+                    CustomerCity = tracelink.CustomerCity,
                 },
 
                 PaymentTerms = new EconomicPaymentTerms
@@ -42,40 +47,22 @@ namespace RTS.Service.Connector.Infrastructure.Economic
                     }
                 },
 
-                References = new EconomicReferences
+                Notes = new EconomicNotes
                 {
-                    Other = $"Kunde: {crmNumber}" ?? "Kunde: Ukendt."
-                }
+                    TextLine1 = $"Komplet ifølge aftale: #{tracelink.CrmNumber}",
+                    TextLine2 = $""
+                },
+
+                Lines = new List<EconomicInvoiceLine>()
             };
 
-            // non required fields
-            draft.Notes = new EconomicNotes
+            draft.Lines.Add(new EconomicInvoiceLine
             {
-                TextLine1 = $"Tracelink order #{orderNumber}",
-                TextLine2 = $"Generated on {DateTime.UtcNow:yyyy-MM-dd HH:mm}"
-            };
-
-            draft.Totals = new EconomicTotals
-            {
-                GrossAmount = (decimal?)root["grossAmount"] ?? 0,
-                NetAmount = (decimal?)root["netAmount"] ?? 0,
-                VatAmount = (decimal?)root["vatAmount"] ?? 0,
-            };
-
-            var lines = root["lines"] as JArray;
-            if (lines != null)
-            {
-                foreach (var line in lines)
-                {
-                    draft.Lines.Add(new EconomicInvoiceLine
-                    {
-                        Description = line["description"]?.ToString(),
-                        Quantity = (int)(line["quantity"] ?? 0),
-                        UnitPrice = (decimal)(line["unitPrice"] ?? 0),
-                        VatRate = (decimal)(line["vatRate"] ?? 0)
-                    });
-                }
-            }
+                Description = invoicePart.Description,
+                Quantity = 1,
+                UnitPrice = invoicePart.Amount,
+                VatRate = 0
+            });
 
             return draft;
         }

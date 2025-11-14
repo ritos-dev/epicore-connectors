@@ -48,10 +48,9 @@ namespace RTS.Service.Connector.Infrastructure.Economic
             return ApiResult<string>.Success(json);
         }
 
-        public async Task<ApiResult<string>> CreateInvoiceDraftAsync(string orderJson, string orderNumber, string crmNumber, CancellationToken cancellationToken = default)
+        public async Task<ApiResult<string>> CreateInvoiceDraftAsync(EconomicInvoiceDraft draft, string orderNumber, string crmNumber, CancellationToken cancellationToken)
         {
             var url = $"{_options.BaseUrl}{_options.Endpoints.CreateDraft}";
-            var draft = EconomicInvoiceMapper.MapToInvoiceDraft(orderJson, orderNumber, crmNumber);
             var jsonBody = JsonConvert.SerializeObject(draft, Formatting.None);
             var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 

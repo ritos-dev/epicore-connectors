@@ -46,8 +46,11 @@ public sealed class EconomicCustomer
     [JsonProperty("customerName")]
     public string? CustomerName { get; set; }
 
-    [JsonProperty("customerAdress")]
-    public string? CustomerAdress { get; set; }
+    [JsonProperty("customerAddress")]
+    public string? CustomerAddress { get; set; }
+
+    [JsonProperty("customercity")]
+    public string? CustomerCity { get; set; }
 
     [JsonProperty("customerZipCode")]
     public string? CustomerZipCode { get; set; }
