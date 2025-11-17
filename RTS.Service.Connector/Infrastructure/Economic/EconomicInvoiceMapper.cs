@@ -2,7 +2,6 @@
 
 using RTS.Service.Connector.DTOs;
 using RTS.Service.Connector.Infrastructure.InvoiceSplit;
-using static Azure.Core.HttpHeader;
 
 namespace RTS.Service.Connector.Infrastructure.Economic
 {

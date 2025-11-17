@@ -69,4 +69,17 @@ namespace RTS.Service.Connector.DTOs
         [JsonProperty("number")]
         public string? CrmNumber { get; init; } // Specific customer id in tracelink
     }
+
+    // Order items
+    public class TracelinkItemsDto
+    {
+        [JsonProperty("obj_id")]
+        public string ObjectId { get; init; } = string.Empty;
+
+        [JsonProperty("genobj_id")]
+        public string GenObjectId { get; init; } = string.Empty;
+
+        [JsonProperty("amount")]
+        public decimal ItemAmount { get; init; }
+    }
 }
