@@ -24,7 +24,7 @@ namespace RTS.Service.Connector.DTOs
         public string? CustomerAddress { get; set; }
         public string? CustomerPostalCode { get; set; }
         public string? CustomerCity { get; set; }
-        public string CompanyDescription { get; set; } = string.Empty;
+        public string CompanyType { get; set; } = string.Empty;
 
         // From /object/list/module/crm
         public string? CrmNumber { get; set; }

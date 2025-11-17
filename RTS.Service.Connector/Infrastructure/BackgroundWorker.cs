@@ -84,12 +84,10 @@ namespace RTS.Service.Connector.Infrastructure
                         _logger.LogInformation("[Worker] Failed to fetch customer.");
                         return;
                     }
-                    _logger.LogInformation("[DEBUG] Looking up customer with name: '{Name}'", customerName);
-
-                    var customerId = customerResult.Data!.CustomerId;
+                    _logger.LogInformation("[Worker] Looking up customer with name: '{Name}'", customerName);
 
                     // Get crm
-                    var crmResult = await _tracelinkClient.GetCrmListAsync(customerId, stoppingToken);
+                    var crmResult = await _tracelinkClient.GetCrmListAsync(customerName, stoppingToken);
 
                     if (!crmResult.IsSuccess)
                     {
@@ -98,12 +96,13 @@ namespace RTS.Service.Connector.Infrastructure
                     }
 
                     var crmNumber = crmResult.Data!.CrmNumber;
+                    _logger.LogInformation("[Worker] Looking up customer with CRM: '{CRM}'", crmNumber);
 
                     // Combined tracelink dto
-                    var combinedDto = TracelinkOrderFactory.Create(listResult.Data!, orderResult.Data!, customerResult.Data, crmResult.Data);
+                    var combinedDto = TracelinkOrderFactory.Create(listResult.Data!, orderResult.Data!, customerResult.Data!, crmResult.Data!);
 
                     // Customer type classification
-                    var customerType = CustomerTypeClassifier.Classify(combinedDto.CompanyDescription);
+                    var customerType = CustomerTypeClassifier.Classify(combinedDto.CompanyType);
                     _logger.LogInformation("[Worker] Customer type for order {OrderNumber} is {CustomerType}", combinedDto.OrderNumber, customerType);
 
                     // TEST AMOUNT THIS WILL BE REPLACED!
@@ -156,17 +155,17 @@ namespace RTS.Service.Connector.Infrastructure
                     // Create invoice draft in economic
                     foreach (var draft in invoiceDrafts)
                     {
-                        _logger.LogInformation("[Worker] Creating invoice draft for '{Description}' (Amount {Amount}", draft.Lines.First().Description, draft.Lines.First().UnitPrice);
+                        _logger.LogInformation("[Worker] Creating invoice draft for '{Description}' (Amount {Amount})", draft.Lines.First().Description, draft.Lines.First().UnitNetPrice);
 
                         var invoiceResult = await _economicClient.CreateInvoiceDraftAsync(draft, combinedDto.OrderNumber, combinedDto.CrmNumber!, stoppingToken);
 
                         if (!invoiceResult.IsSuccess)
                         {
-                            _logger.LogError("[Worker] Failed to create invoice for '{Desc}' on order {OrderNumber}: {Error}", draft.Lines.First().Description, combinedDto.OrderNumber, invoiceResult.ErrorMessage);
+                            _logger.LogError("[Worker] Failed to create invoice for '{Description}' on order {OrderNumber}: {Error}", draft.Lines.First().Description, combinedDto.OrderNumber, invoiceResult.ErrorMessage);
                             continue;
                         }
 
-                        _logger.LogInformation("[Worker] Successfully created invoice for '{Desc}' (Order {OrderNumber})", draft.Lines.First().Description, combinedDto.OrderNumber);
+                        _logger.LogInformation("[Worker] Successfully created invoice for '{Description}' (Order {OrderNumber})", draft.Lines.First().Description, combinedDto.OrderNumber);
                     }
 
                     // Save invoice to database

@@ -8,6 +8,7 @@ namespace RTS.Service.Connector.Infrastructure.InvoiceSplit
         public string Description { get; set; } = string.Empty;
         public decimal Amount { get; set; }
         public decimal Percentage { get; set; }
+        public string? ProductNumber { get; set; }
     }
 
     public class OrderSplitToInvoices : IOrderSplitToInvoices
@@ -26,19 +27,22 @@ namespace RTS.Service.Connector.Infrastructure.InvoiceSplit
                 {
                     Description = "Depositum",
                     Percentage = 0.10m,
-                    Amount = totalAmount * 0.10m
+                    Amount = totalAmount * 0.10m,
+                    ProductNumber = "4", // Will be changed to equivalent "Varenummer" in RTS economic 
                 },
                 new InvoicePart
                 {
                     Description = "1. Rate",
                     Percentage = 0.50m,
-                    Amount = totalAmount * 0.50m
+                    Amount = totalAmount * 0.50m,
+                    ProductNumber = "5", // Will be changed to equivalent "Varenummer" in RTS economic 
                 },
                 new InvoicePart
                 {
                     Description = "2. Rate",
                     Percentage = 0.40m,
-                    Amount = totalAmount * 0.40m
+                    Amount = totalAmount * 0.40m,
+                    ProductNumber = "6", // Will be changed to equivalent "Varenummer" in RTS economic 
                 },
             };
         }

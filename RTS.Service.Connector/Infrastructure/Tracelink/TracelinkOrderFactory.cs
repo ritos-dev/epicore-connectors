@@ -4,27 +4,28 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
 {
     public static class TracelinkOrderFactory
     {
-        public static CompleteTracelinkDto Create(TracelinkOrderListDto list, TracelinkOrderDto details, TracelinkCustomerDto customer, TracelinkCRMDto crm)
+        public static CompleteTracelinkDto Create(TracelinkOrderListDto orderList, TracelinkOrderDto orderDetails, TracelinkCustomerDto customer, TracelinkCRMDto crm)
         {
             return new CompleteTracelinkDto
             {
                 // order list
-                OrderId = list.OrderId,
-                OrderNumber = list.Number,
-                CustomerName = list.Name,
+                OrderId = orderList.OrderId,
+                OrderNumber = orderList.Number,
+                CustomerName = orderList.Name,
 
                 // order details
-                Description = details.Description,
-                State = details.State,
-                StartDate = details.StartDate,
-                DeadlineDate = details.DeadlineDate,
-                UpdatedAt = details.UpdatedAt,
+                Description = orderDetails.Description,
+                State = orderDetails.State,
+                StartDate = orderDetails.StartDate,
+                DeadlineDate = orderDetails.DeadlineDate,
+                UpdatedAt = orderDetails.UpdatedAt,
 
                 // customer list
                 CustomerId = customer.CustomerId,
-                CustomerAddress = customer.CustomerAdress,
+                CustomerAddress = customer.CustomerAddress,
                 CustomerCity = customer.CustomerCity,
                 CustomerPostalCode = customer.CustomerPostalcode,
+                CompanyType = customer.CompanyType,
 
                 // crm list
                 CrmNumber = crm.CrmNumber

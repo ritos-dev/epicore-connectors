@@ -1,8 +1,8 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 
 using RTS.Service.Connector.DTOs;
 using RTS.Service.Connector.Infrastructure.InvoiceSplit;
+using static Azure.Core.HttpHeader;
 
 namespace RTS.Service.Connector.Infrastructure.Economic
 {
@@ -21,10 +21,7 @@ namespace RTS.Service.Connector.Infrastructure.Economic
 
                 Customer = new EconomicCustomer
                 {
-                    CustomerName = tracelink.CustomerName,
-                    CustomerAddress = tracelink.CustomerAddress,
-                    CustomerZipCode = tracelink.CustomerPostalCode,
-                    CustomerCity = tracelink.CustomerCity,
+                    CustomerNumber = (int)(root["customer"]?["customerNumber"] ?? 0),
                 },
 
                 PaymentTerms = new EconomicPaymentTerms
@@ -39,7 +36,10 @@ namespace RTS.Service.Connector.Infrastructure.Economic
 
                 Recipient = new EconomicRecipient
                 {
-                    Name = root["recipient"]?["name"]?.ToString(),
+                    Name = tracelink.CustomerName,
+                    CustomerAddress = tracelink.CustomerAddress,
+                    CustomerZipCode = tracelink.CustomerPostalCode,
+                    CustomerCity = tracelink.CustomerCity,
 
                     VatZone = new EconomicVatZone
                     {
@@ -47,21 +47,26 @@ namespace RTS.Service.Connector.Infrastructure.Economic
                     }
                 },
 
-                Notes = new EconomicNotes
-                {
-                    TextLine1 = $"Komplet ifølge aftale: #{tracelink.CrmNumber}",
-                    TextLine2 = $""
-                },
-
                 Lines = new List<EconomicInvoiceLine>()
+            };
+
+            var referenceText = "Beløbet svarer til " + (invoicePart.Percentage * 100).ToString("0") + "% af det aftalte beløb.";
+            draft.Notes = new EconomicNotes
+            {
+                TextLine1 = $"Komplet ifølge aftale: #{tracelink.CrmNumber} \n{referenceText}",
+                TextLine2 = $""
             };
 
             draft.Lines.Add(new EconomicInvoiceLine
             {
                 Description = invoicePart.Description,
                 Quantity = 1,
-                UnitPrice = invoicePart.Amount,
-                VatRate = 0
+                UnitNetPrice = invoicePart.Amount,
+                VatRate = 0,
+                Product = new EconomicProducts
+                {
+                    ProductNumber = invoicePart.ProductNumber
+                }
             });
 
             return draft;

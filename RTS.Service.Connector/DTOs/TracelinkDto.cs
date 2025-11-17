@@ -48,7 +48,7 @@ namespace RTS.Service.Connector.DTOs
         public string CustomerId { get; init; } = string.Empty; // Specific customer id in tracelink
 
         [JsonProperty("address")]
-        public string? CustomerAdress { get; init; }
+        public string? CustomerAddress { get; init; }
 
         [JsonProperty("postalcode")]
         public string? CustomerPostalcode { get; init; }
@@ -57,14 +57,14 @@ namespace RTS.Service.Connector.DTOs
         public string? CustomerCity { get; init; }
 
         [JsonProperty("companydesc")]
-        public string? CompanyDescription { get; init; }
+        public string? CompanyType { get; init; } // Private, Public etc. 
     }
 
     // CRM Id for tracking projects
     public class TracelinkCRMDto
     {
-        [JsonProperty("customer_id")]
-        public string? CustomerId { get; init; } = string.Empty; // Specific customer id in tracelink
+        [JsonProperty("name")]
+        public string Name { get; init; } = string.Empty;
 
         [JsonProperty("number")]
         public string? CrmNumber { get; init; } // Specific customer id in tracelink

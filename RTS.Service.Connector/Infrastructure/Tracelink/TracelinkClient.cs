@@ -116,7 +116,7 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
         }
 
         // Get crm list
-        public async Task<ApiResult<TracelinkCRMDto>> GetCrmListAsync(string customerId, CancellationToken token)
+        public async Task<ApiResult<TracelinkCRMDto>> GetCrmListAsync(string customerName, CancellationToken token)
         {
             try
             {
@@ -130,7 +130,7 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
 
                 var json = await response.Content.ReadAsStringAsync(token);
                 var crmList = TracelinkParser.ExtractCRM(json);
-                var match = crmList.FirstOrDefault(cl => string.Equals(cl.CustomerId, customerId, StringComparison.OrdinalIgnoreCase));
+                var match = crmList.FirstOrDefault(cl => string.Equals(cl.Name, customerName, StringComparison.OrdinalIgnoreCase));
 
                 if (match is null)
                 {
@@ -141,7 +141,7 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[Tracelink Client] Error fetching TraceLink customer {Name}", customerId);
+                _logger.LogError(ex, "[Tracelink Client] Error fetching TraceLink customer {Name}", customerName);
                 return ApiResult<TracelinkCRMDto>.Failure(ex.Message);
             }
         }
