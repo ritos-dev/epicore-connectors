@@ -1,10 +1,11 @@
-﻿using RTS.Service.Connector.Infrastructure;
+﻿using RTS.Service.Connector.DTOs;
+using RTS.Service.Connector.Infrastructure;
 
 namespace RTS.Service.Connector.Interfaces
 {
     public interface IEconomicClient
     {
-        Task<ApiResult<string>> GetOrderDraftIfExistsAsync(string orderNumber, CancellationToken cancellationToken = default);
-        Task<ApiResult<string>> CreateInvoiceDraftAsync(string orderJson, string orderNumber, string crmNumber, CancellationToken cancellationToken = default);
+        Task<ApiResult<string>> GetOrderDraftIfExistsAsync(string orderNumber, CancellationToken cancellationToken);
+        Task<ApiResult<string>> CreateInvoiceDraftAsync(EconomicInvoiceDraft draft, string orderNumber, string crmNumber, CancellationToken cancellationToken);
     }
 }

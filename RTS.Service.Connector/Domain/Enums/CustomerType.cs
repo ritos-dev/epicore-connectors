@@ -2,8 +2,9 @@
 {
     public enum CustomerType
     {
-        Private = 0,
-        Company = 1,
-        Institution = 2
+        Unknown = 0,
+        Private = 1,
+        Company = 2,
+        Institution = 3
     }
 }

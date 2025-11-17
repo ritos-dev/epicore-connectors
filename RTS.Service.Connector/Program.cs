@@ -7,6 +7,7 @@ using RTS.Service.Connector.Infrastructure;
 using RTS.Service.Connector.Infrastructure.Services;
 using RTS.Service.Connector.Infrastructure.Economic;
 using RTS.Service.Connector.Infrastructure.Tracelink;
+using RTS.Service.Connector.Infrastructure.InvoiceSplit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,10 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 builder.Services.AddHostedService<ConnectorBackgroundWorker>();
+
+builder.Services.AddSingleton<IOrderSplitToInvoices, OrderSplitToInvoices>();
+
+builder.Services.AddSingleton<EconomicInvoiceMapper>();
 
 // Tracelink configuration
 builder.Services.Configure<TracelinkOptions>(builder.Configuration.GetSection(TracelinkOptions.SectionName));
@@ -59,6 +64,7 @@ builder.Services.AddHttpClient("Economic", (serviceProvider, client) =>
 });
 
 var econOptions = builder.Configuration.GetSection("Economic").Get<EconomicOptions>();
+
 if (econOptions != null)
 {
     Console.ForegroundColor = ConsoleColor.Yellow;

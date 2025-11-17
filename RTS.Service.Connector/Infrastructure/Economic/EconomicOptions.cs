@@ -7,6 +7,7 @@
         public string AppSecretToken { get; init; } = string.Empty;
         public string AgreementGrantToken { get; init; } = string.Empty;
         public int TimeoutSeconds { get; init; } = 30;
+        public int TestTotalAmount { get; init; }
 
         // Endpoints
         public EndpointsOptions Endpoints { get; init; } = new();

@@ -75,9 +75,9 @@ namespace RTS.Service.Connector.Infrastructure.Services
                     {
                         Description = line.Description ?? string.Empty,
                         Quantity = line.Quantity,
-                        UnitPrice = line.UnitPrice,
+                        UnitPrice = line.UnitNetPrice,
                         VatRate = line.VatRate,
-                        LineTotal = line.Quantity * line.UnitPrice
+                        LineTotal = line.Quantity * line.UnitNetPrice
                     });
                 }
             }
