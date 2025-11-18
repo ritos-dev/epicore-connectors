@@ -28,5 +28,16 @@ namespace RTS.Service.Connector.DTOs
 
         // From /object/list/module/crm
         public string? CrmNumber { get; set; }
+        public string? CrmId { get; set; }
+
+        // Combined items from CRM
+        public List<TracelinkCombinedItemsDto> Items { get; set; } = new();
+    }
+
+    public class TracelinkCombinedItemsDto
+    {
+        public string ObjectId { get; set; } = string.Empty;
+        public decimal ItemAmount { get; set; } // Amount of a single item in the órder
+        public decimal Price { get; set; }
     }
 }

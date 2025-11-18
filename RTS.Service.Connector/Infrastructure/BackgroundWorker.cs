@@ -96,18 +96,54 @@ namespace RTS.Service.Connector.Infrastructure
                     }
 
                     var crmNumber = crmResult.Data!.CrmNumber;
+                    var crmId = crmResult.Data!.CrmId;
                     _logger.LogInformation("[Worker] Looking up customer with CRM: '{CRM}'", crmNumber);
+
+                    // Get items connected to crm
+                    var crmItemsResult = await _tracelinkClient.GetItemsFromCrmAsync(crmId, stoppingToken);
+
+                    if (!crmItemsResult.IsSuccess)
+                    {
+                        _logger.LogInformation("[Worker] Failed to find items connected to CRM.");
+                        return;
+                    }
+
+                    var combinedItems = new List<TracelinkCombinedItemsDto>();
+                    
+                    foreach (var crmItem in crmItemsResult.Data!)
+                    {
+                        var itemDetailsResult = await _tracelinkClient.GetItemListAsync(crmItem.GenObjectId, stoppingToken);
+                        if (!itemDetailsResult.IsSuccess)
+                        {
+                            _logger.LogWarning("[Worker] Failed price lookup for genobj_id {Id}", crmItem.GenObjectId);
+                            continue;
+                        }
+
+                        // From string to decimal
+                        decimal price = 0;
+                        decimal.TryParse(itemDetailsResult.Data!.ItemPrice,
+                            System.Globalization.NumberStyles.Any,
+                            System.Globalization.CultureInfo.InvariantCulture,
+                            out price);
+
+                        combinedItems.Add(new TracelinkCombinedItemsDto
+                        {
+                            ObjectId = crmItem.GenObjectId,
+                            ItemAmount = crmItem.ItemAmount,
+                            Price = price
+                        });
+                    }
 
                     // Combined tracelink dto
                     var combinedDto = TracelinkOrderFactory.Create(listResult.Data!, orderResult.Data!, customerResult.Data!, crmResult.Data!);
+                    combinedDto.Items = combinedItems;
 
                     // Customer type classification
                     var customerType = CustomerTypeClassifier.Classify(combinedDto.CompanyType);
                     _logger.LogInformation("[Worker] Customer type for order {OrderNumber} is {CustomerType}", combinedDto.OrderNumber, customerType);
 
-                    // TEST AMOUNT THIS WILL BE REPLACED!
-                    var totalAmount = _options.TestTotalAmount;
-                    _logger.LogWarning("[TEST] TEST TOTAL AMOUNT FOR SPLITTING.");
+                    // Calculate total net price
+                    var totalNetPrice = combinedItems.Sum(i => i.ItemAmount * i.Price);
 
                     // Save order to database
                     /*using (var scope = _scopeFactory.CreateScope())
@@ -127,7 +163,7 @@ namespace RTS.Service.Connector.Infrastructure
                     }
 
                     // Split service for invoices
-                    var invoiceParts = _split.Split(totalAmount, customerType);
+                    var invoiceParts = _split.Split(totalNetPrice, customerType);
                     _logger.LogInformation("[Split] {Count} invoice parts generated for order {OrderNumber}", invoiceParts.Count, combinedDto.OrderNumber);
 
                     if (invoiceParts.Count == 0)
@@ -149,7 +185,7 @@ namespace RTS.Service.Connector.Infrastructure
 
                         invoiceDrafts.Add(draft);
 
-                        _logger.LogInformation("[Mapper] Created invoice draft: '{Desc}' (Amount {Amount}) for order {OrderNumber}", part.Description, part.Amount, combinedDto.OrderNumber);
+                        _logger.LogInformation("[Mapper] Created invoice draft: '{Desc}' (Amount {Amount}) for order {OrderNumber}", part.Description, part.NetPrice, combinedDto.OrderNumber);
                     }
 
                     // Create invoice draft in economic

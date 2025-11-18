@@ -71,6 +71,37 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
                 return new List<TracelinkCRMDto>();
             }
         }
-    }
 
+        // Extract items attached to CRM
+        public static List<TracelinkItemsDto> ExtractItemsFromCrm(string json)
+        {
+            try
+            {
+                var root = JObject.Parse(json);
+                var array = root["objects"] as JArray;
+
+                return array?.ToObject<List<TracelinkItemsDto>>() ?? new List<TracelinkItemsDto>();
+            }
+            catch 
+            {
+                return new List<TracelinkItemsDto>();
+            }
+        }
+
+        // Extract item list 
+        public static List<TracelinkItemsListDto> ExtractItems(string json)
+        {
+            try
+            {
+                var root = JObject.Parse(json);
+                var array = root["objects"] as JArray;
+
+                return array?.ToObject<List<TracelinkItemsListDto>>() ?? new List<TracelinkItemsListDto>();
+            }
+            catch
+            {
+                return new List<TracelinkItemsListDto>();
+            }
+        }
+    }
 }

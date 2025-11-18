@@ -60,7 +60,7 @@ namespace RTS.Service.Connector.Infrastructure.Economic
             {
                 Description = invoicePart.Description,
                 Quantity = 1,
-                UnitNetPrice = invoicePart.Amount,
+                UnitNetPrice = invoicePart.NetPrice,
                 VatRate = 0,
                 Product = new EconomicProducts
                 {

@@ -16,6 +16,8 @@
             public string GetOrder { get; init; } = string.Empty;
             public string GetCustomerList { get; init; } = string.Empty;
             public string GetCrmList { get; init; } = string.Empty;
+            public string GetItemsFromCrm { get; init; } = string.Empty;
+            public string GetItemList { get; init; } = string.Empty;
         }
     }
 }

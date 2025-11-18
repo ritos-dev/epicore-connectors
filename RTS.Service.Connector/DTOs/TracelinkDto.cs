@@ -67,19 +67,32 @@ namespace RTS.Service.Connector.DTOs
         public string Name { get; init; } = string.Empty;
 
         [JsonProperty("number")]
-        public string? CrmNumber { get; init; } // Specific customer id in tracelink
+        public string? CrmNumber { get; init; } // Specific CRM number used for tracking projects
+
+        [JsonProperty("crm_id")]
+        public string CrmId { get; init; } = string.Empty;
     }
 
-    // Order items
+    // Order items connected to CRM id
     public class TracelinkItemsDto
     {
-        [JsonProperty("obj_id")]
-        public string ObjectId { get; init; } = string.Empty;
+        [JsonProperty("crm_id")]
+        public string? CrmId { get; init; }
 
         [JsonProperty("genobj_id")]
-        public string GenObjectId { get; init; } = string.Empty;
+        public string GenObjectId { get; init; } = string.Empty; // This id matches object_id for the items in item list
 
-        [JsonProperty("amount")]
+        [JsonProperty("unit_order_count_f")]
         public decimal ItemAmount { get; init; }
+    }
+
+    // Item list
+    public class TracelinkItemsListDto
+    {
+        [JsonProperty("object_id")]
+        public string ObjectId { get; init; } = string.Empty;
+
+        [JsonProperty("brutto_price_cy")]
+        public string? ItemPrice { get; init; } 
     }
 }

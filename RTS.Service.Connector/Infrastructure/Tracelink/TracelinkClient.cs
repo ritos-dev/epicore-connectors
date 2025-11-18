@@ -38,7 +38,7 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
                 var orderList = TracelinkParser.ExtractOrderList(json);
                 var match = orderList.FirstOrDefault(o => string.Equals(o.Number, orderNumber, StringComparison.OrdinalIgnoreCase));
 
-                if (match is null)
+                if (match == null)
                 {
                     return ApiResult<TracelinkOrderListDto>.Failure("Order not found");
                 }
@@ -101,7 +101,7 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
                 var customerList = TracelinkParser.ExtractCustomerList(json);
                 var match = customerList.FirstOrDefault(cl => string.Equals(cl.Name, customerName, StringComparison.OrdinalIgnoreCase));
 
-                if (match is null)
+                if (match == null)
                 {
                     return ApiResult<TracelinkCustomerDto>.Failure("Customer not found");
                 }
@@ -132,7 +132,7 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
                 var crmList = TracelinkParser.ExtractCRM(json);
                 var match = crmList.FirstOrDefault(cl => string.Equals(cl.Name, customerName, StringComparison.OrdinalIgnoreCase));
 
-                if (match is null)
+                if (match == null)
                 {
                     return ApiResult<TracelinkCRMDto>.Failure("Customer not found");
                 }
@@ -143,6 +143,66 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
             {
                 _logger.LogError(ex, "[Tracelink Client] Error fetching TraceLink customer {Name}", customerName);
                 return ApiResult<TracelinkCRMDto>.Failure(ex.Message);
+            }
+        }
+
+        public async Task<ApiResult<List<TracelinkItemsDto>>> GetItemsFromCrmAsync(string crmId, CancellationToken token)
+        {
+            try
+            {
+                var url = $"{_options.BaseUrl}{_options.Endpoints.GetItemsFromCrm}?token={_options.ApiToken}";
+                var response = await _client.PostAsync(url, null, token);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return await Fail<List<TracelinkItemsDto>>(response, token);
+                }
+
+                var json = await response.Content.ReadAsStringAsync(token);
+                var crmItems = TracelinkParser.ExtractItemsFromCrm(json);
+                var match = crmItems.Where(ci => string.Equals(ci.CrmId, crmId, StringComparison.OrdinalIgnoreCase)).ToList();
+
+                if (match == null)
+                {
+                    return ApiResult<List<TracelinkItemsDto>>.Failure("CRM id not found");
+                }
+
+                return new ApiResult<List<TracelinkItemsDto>>(true, match);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Tracelink Client] Error fetching crm id {CRM ID}", crmId);
+                return ApiResult<List<TracelinkItemsDto>>.Failure(ex.Message);
+            }
+        }
+
+        public async Task<ApiResult<TracelinkItemsListDto>> GetItemListAsync(string objectId, CancellationToken token)
+        {
+            try
+            {
+                var url = $"{_options.BaseUrl}{_options.Endpoints.GetItemsFromCrm}?token={_options.ApiToken}";
+                var response = await _client.PostAsync(url, null, token);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return await Fail<TracelinkItemsListDto>(response, token);
+                }
+
+                var json = await response.Content.ReadAsStringAsync(token);
+                var item = TracelinkParser.ExtractItems(json);
+                var match = item.FirstOrDefault(i => string.Equals(i.ObjectId, objectId, StringComparison.OrdinalIgnoreCase));
+
+                if (match == null)
+                {
+                    return ApiResult<TracelinkItemsListDto>.Failure("Object id not found");
+                }
+
+                return new ApiResult<TracelinkItemsListDto>(true, match);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Tracelink Client] Error fetching object id {OBJ ID}", objectId);
+                return ApiResult<TracelinkItemsListDto>.Failure(ex.Message);
             }
         }
 

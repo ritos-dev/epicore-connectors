@@ -4,7 +4,11 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
 {
     public static class TracelinkOrderFactory
     {
-        public static CompleteTracelinkDto Create(TracelinkOrderListDto orderList, TracelinkOrderDto orderDetails, TracelinkCustomerDto customer, TracelinkCRMDto crm)
+        public static CompleteTracelinkDto Create(
+            TracelinkOrderListDto orderList, 
+            TracelinkOrderDto orderDetails, 
+            TracelinkCustomerDto customer, 
+            TracelinkCRMDto crm)
         {
             return new CompleteTracelinkDto
             {
@@ -28,7 +32,11 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
                 CompanyType = customer.CompanyType,
 
                 // crm list
-                CrmNumber = crm.CrmNumber
+                CrmNumber = crm.CrmNumber,
+                CrmId = crm.CrmId,
+
+                // crm items
+                Items = new List<TracelinkCombinedItemsDto>()
             };
         }
     }
