@@ -1,4 +1,5 @@
 ﻿using RTS.Service.Connector.Domain.Enums;
+using RTS.Service.Connector.Domain.SummaryInvoiceReport.Entities;
 
 namespace RTS.Service.Connector.Domain.Invoices.Entities
 {
@@ -20,5 +21,9 @@ namespace RTS.Service.Connector.Domain.Invoices.Entities
 
         // Navigation property for invoice lines
         public ICollection<InvoiceLine> Lines { get; set; } = new List<InvoiceLine>();
+
+        // Navigation property for summary report
+        public int? SummaryReportId { get; set; } // FK
+        public SummaryReport? SummaryReport { get; set; } 
     }
 }
