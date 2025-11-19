@@ -24,21 +24,21 @@ namespace RTS.Service.Connector.Infrastructure.InvoiceSplit
             {
                 new InvoicePart
                 {
-                    Description = "Depositum",
+                    Description = "Depositum (10%)",
                     Percentage = 0.10m,
                     NetPrice = Math.Round(totalAmount * 0.10m, 2, MidpointRounding.AwayFromZero),
                     ProductNumber = "4", // Will be changed to equivalent "Varenummer" in RTS economic 
                 },
                 new InvoicePart
                 {
-                    Description = "1. Rate",
+                    Description = "1. Rate (50%)",
                     Percentage = 0.50m,
                     NetPrice = Math.Round(totalAmount * 0.50m, 2, MidpointRounding.AwayFromZero),
                     ProductNumber = "5", // Will be changed to equivalent "Varenummer" in RTS economic 
                 },
                 new InvoicePart
                 {
-                    Description = "2. Rate",
+                    Description = "2. Rate (40%)",
                     Percentage = 0.40m,
                     NetPrice = Math.Round(totalAmount * 0.40m, 2, MidpointRounding.AwayFromZero),
                     ProductNumber = "6", // Will be changed to equivalent "Varenummer" in RTS economic 

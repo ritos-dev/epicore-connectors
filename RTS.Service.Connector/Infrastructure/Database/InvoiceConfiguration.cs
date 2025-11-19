@@ -36,8 +36,6 @@ namespace RTS.Service.Connector.Infrastructure.Configurations
                    .HasColumnType("decimal(18,2)")
                    .HasDefaultValue(0);
 
-            builder.Property(i => i.InvoiceNumber);
-
             builder.Property(i => i.Status)
                    .IsRequired()
                    .HasMaxLength(20);

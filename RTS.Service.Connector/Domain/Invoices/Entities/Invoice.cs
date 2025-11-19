@@ -14,7 +14,6 @@ namespace RTS.Service.Connector.Domain.Invoices.Entities
         public DateTime InvoiceCreateDate { get; set; } = DateTime.UtcNow;
         public DateTime? InvoiceDueDate { get; set; }
         public decimal InvoiceAmount { get; set; }
-        public int InvoiceNumber { get; set; } // example: 1 out of 3
         public string Status { get; set; } = "Draft";
         public DateTime? UpdatedAt { get; set; }
 
