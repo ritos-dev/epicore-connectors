@@ -8,7 +8,7 @@ namespace RTS.Service.Connector.Infrastructure.InvoiceSplit
         {
             if(string.IsNullOrEmpty(companyDesc))
             {
-                return CustomerType.Company;
+                return CustomerType.Private;
             }
 
             // When a companyDesc contains at least the word "privat" then return customer type as "Private".

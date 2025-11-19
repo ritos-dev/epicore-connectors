@@ -1,10 +1,10 @@
-﻿using RTS.Service.Connector.DTOs;
-using RTS.Service.Connector.Interfaces;
+﻿using Microsoft.Extensions.Options;
+using RTS.Service.Connector.DTOs;
 using RTS.Service.Connector.Infrastructure.Economic;
-using RTS.Service.Connector.Infrastructure.Tracelink;
 using RTS.Service.Connector.Infrastructure.InvoiceSplit;
-
-using Microsoft.Extensions.Options;
+using RTS.Service.Connector.Infrastructure.Services;
+using RTS.Service.Connector.Infrastructure.Tracelink;
+using RTS.Service.Connector.Interfaces;
 
 namespace RTS.Service.Connector.Infrastructure
 {
@@ -57,7 +57,7 @@ namespace RTS.Service.Connector.Infrastructure
                     if (!listResult.IsSuccess)
                     {
                         _logger.LogInformation("[Worker] Failed to find order in list");
-                        return;
+                        continue;
                     }
 
                     var orderId = listResult.Data!.OrderId;
@@ -70,8 +70,8 @@ namespace RTS.Service.Connector.Infrastructure
                     
                     if(!orderResult.IsSuccess)
                     {
-                        _logger.LogInformation("[Worker] Failed to fetch full order.");
-                        return;
+                        _logger.LogInformation("[Worker] Failed to fetch full order for {OrderNumber}.", orderNumber);
+                        continue;
                     }
 
                     var orderDetails = orderResult.Data; // for specifics look into TracelinkOrderDto
@@ -82,7 +82,7 @@ namespace RTS.Service.Connector.Infrastructure
                     if (!customerResult.IsSuccess)
                     {
                         _logger.LogInformation("[Worker] Failed to fetch customer.");
-                        return;
+                        continue;
                     }
                     _logger.LogInformation("[Worker] Looking up customer with name: '{Name}'", customerName);*/
 
@@ -92,11 +92,12 @@ namespace RTS.Service.Connector.Infrastructure
                     if (!crmResult.IsSuccess)
                     {
                         _logger.LogInformation("[Worker] Failed to find CRM.");
-                        return;
+                        continue;
                     }
 
                     var crmNumber = crmResult.Data!.CrmNumber;
                     var crmId = crmResult.Data!.CrmId;
+
                     _logger.LogInformation("[Worker] Looking up customer with CRM: '{CRM}'", crmNumber);
 
                     // Get items connected to crm
@@ -105,16 +106,15 @@ namespace RTS.Service.Connector.Infrastructure
                     if (!crmItemsResult.IsSuccess)
                     {
                         _logger.LogInformation("[Worker] Failed to find items connected to CRM.");
-                        return;
+                        continue;
                     }
 
                     var combinedItems = new List<TracelinkCombinedItemsDto>();
                     
                     foreach (var crmItem in crmItemsResult.Data!)
                     {
-                        _logger.LogInformation("[DEBUG] genobj_id={GenId}", crmItem.GenObjectId);
-
                         var itemDetailsResult = await _tracelinkClient.GetItemListAsync(crmItem.GenObjectId, stoppingToken);
+
                         if (!itemDetailsResult.IsSuccess)
                         {
                             _logger.LogWarning("[Worker] Failed price lookup for genobj_id {Id}", crmItem.GenObjectId);
@@ -123,10 +123,12 @@ namespace RTS.Service.Connector.Infrastructure
 
                         // From string to decimal
                         decimal price = 0;
-                        decimal.TryParse(itemDetailsResult.Data!.ItemPrice,
-                            System.Globalization.NumberStyles.Any,
-                            System.Globalization.CultureInfo.InvariantCulture,
-                            out price);
+
+                        if (!decimal.TryParse(itemDetailsResult.Data!.ItemPrice, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out price))
+                        {
+                            _logger.LogWarning("[Worker] Failed to parse price '{Price}' for genobj_id {Id}", itemDetailsResult.Data!.ItemPrice, crmItem.GenObjectId);
+                            continue;
+                        }
 
                         combinedItems.Add(new TracelinkCombinedItemsDto
                         {
@@ -138,6 +140,13 @@ namespace RTS.Service.Connector.Infrastructure
 
                     // Combined tracelink dto
                     var combinedDto = TracelinkOrderFactory.Create(listResult.Data!, orderResult.Data!, /*customerResult.Data!,*/ crmResult.Data!);
+                    
+                    if (combinedDto.CrmNumber is null)
+                    {
+                        _logger.LogError("[Worker] CRM number is null for order {OrderNumber}. Skipping invoice creation.", combinedDto.OrderNumber);
+                        continue;
+                    }
+
                     combinedDto.Items = combinedItems;
 
                     // Customer type classification
@@ -161,7 +170,7 @@ namespace RTS.Service.Connector.Infrastructure
                     if (!draftResult.IsSuccess)
                     {
                         _logger.LogInformation("[Worker] Order {OrderNumber} not found or failed: {Error}", orderNumber, draftResult.ErrorMessage);
-                        return;
+                        continue;
                     }
 
                     // Split service for invoices
@@ -190,7 +199,7 @@ namespace RTS.Service.Connector.Infrastructure
                         _logger.LogInformation("[Mapper] Created invoice draft: '{Desc}' (Amount {Amount}) for order {OrderNumber}", part.Description, part.NetPrice, combinedDto.OrderNumber);
                     }
 
-                    // Create invoice draft in economic
+                    // Create invoice draft in economic and save it to database
                     foreach (var draft in invoiceDrafts)
                     {
                         _logger.LogInformation("[Worker] Creating invoice draft for '{Description}' (Amount {Amount})", draft.Lines.First().Description, draft.Lines.First().UnitNetPrice);
@@ -204,14 +213,14 @@ namespace RTS.Service.Connector.Infrastructure
                         }
 
                         _logger.LogInformation("[Worker] Successfully created invoice for '{Description}' (Order {OrderNumber})", draft.Lines.First().Description, combinedDto.OrderNumber);
-                    }
 
-                    // Save invoice to database
-                    using (var scope = _scopeFactory.CreateScope())
-                    {
-                        var persistence = scope.ServiceProvider.GetRequiredService<InvoicePersistenceService>();
-                        await persistence.SaveInvoiceAsync(invoiceResult.Data!, orderNumber, crmNumber!, stoppingToken);
-                        _logger.LogInformation("[Worker] Invoice information saved successfully for order {OrderNumber} with CRM {crmNumber}", orderNumber, crmNumber);
+                        // Save invoice to database
+                        using (var scope = _scopeFactory.CreateScope())
+                        {
+                            var persistence = scope.ServiceProvider.GetRequiredService<InvoicePersistenceService>();
+                            await persistence.SaveInvoiceAsync(invoiceResult.Data!, orderNumber, crmNumber!, stoppingToken);
+                            _logger.LogInformation("[Worker] Invoice information saved successfully for order {OrderNumber} with CRM {crmNumber}", orderNumber, crmNumber);
+                        }
                     }
                 }
                 catch (Exception ex)
