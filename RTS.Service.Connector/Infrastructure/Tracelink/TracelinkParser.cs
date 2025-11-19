@@ -89,7 +89,7 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
         }
 
         // Extract item list 
-        public static List<TracelinkItemsListDto> ExtractItems(string json)
+        public static List<TracelinkItemsListDto> ExtractItemList(string json)
         {
             try
             {

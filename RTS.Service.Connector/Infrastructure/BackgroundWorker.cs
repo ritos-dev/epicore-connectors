@@ -77,14 +77,14 @@ namespace RTS.Service.Connector.Infrastructure
                     var orderDetails = orderResult.Data; // for specifics look into TracelinkOrderDto
 
                     // Find the customer in the list
-                    var customerResult = await _tracelinkClient.GetCustomerListAsync(customerName, stoppingToken);
+                    /*var customerResult = await _tracelinkClient.GetCustomerListAsync(customerName, stoppingToken);
 
                     if (!customerResult.IsSuccess)
                     {
                         _logger.LogInformation("[Worker] Failed to fetch customer.");
                         return;
                     }
-                    _logger.LogInformation("[Worker] Looking up customer with name: '{Name}'", customerName);
+                    _logger.LogInformation("[Worker] Looking up customer with name: '{Name}'", customerName);*/
 
                     // Get crm
                     var crmResult = await _tracelinkClient.GetCrmListAsync(customerName, stoppingToken);
@@ -112,6 +112,8 @@ namespace RTS.Service.Connector.Infrastructure
                     
                     foreach (var crmItem in crmItemsResult.Data!)
                     {
+                        _logger.LogInformation("[DEBUG] genobj_id={GenId}", crmItem.GenObjectId);
+
                         var itemDetailsResult = await _tracelinkClient.GetItemListAsync(crmItem.GenObjectId, stoppingToken);
                         if (!itemDetailsResult.IsSuccess)
                         {
@@ -135,7 +137,7 @@ namespace RTS.Service.Connector.Infrastructure
                     }
 
                     // Combined tracelink dto
-                    var combinedDto = TracelinkOrderFactory.Create(listResult.Data!, orderResult.Data!, customerResult.Data!, crmResult.Data!);
+                    var combinedDto = TracelinkOrderFactory.Create(listResult.Data!, orderResult.Data!, /*customerResult.Data!,*/ crmResult.Data!);
                     combinedDto.Items = combinedItems;
 
                     // Customer type classification
@@ -146,12 +148,12 @@ namespace RTS.Service.Connector.Infrastructure
                     var totalNetPrice = combinedItems.Sum(i => i.ItemAmount * i.Price);
 
                     // Save order to database
-                    /*using (var scope = _scopeFactory.CreateScope())
+                    using (var scope = _scopeFactory.CreateScope())
                     {
                         var persistence = scope.ServiceProvider.GetRequiredService<TracelinkPersistenceService>();
                         await persistence.SaveOrderAsync(combinedDto);
                         _logger.LogInformation("[Worker] Order saved successfully for TraceLink order {OrderNumber}", combinedDto.OrderNumber);
-                    }*/
+                    }
 
                     // Fetch order draft from Economic
                     var draftResult = await _economicClient.GetOrderDraftIfExistsAsync(combinedDto.OrderNumber, stoppingToken);
@@ -205,12 +207,12 @@ namespace RTS.Service.Connector.Infrastructure
                     }
 
                     // Save invoice to database
-                    /*using (var scope = _scopeFactory.CreateScope())
+                    using (var scope = _scopeFactory.CreateScope())
                     {
                         var persistence = scope.ServiceProvider.GetRequiredService<InvoicePersistenceService>();
                         await persistence.SaveInvoiceAsync(invoiceResult.Data!, orderNumber, crmNumber!, stoppingToken);
                         _logger.LogInformation("[Worker] Invoice information saved successfully for order {OrderNumber} with CRM {crmNumber}", orderNumber, crmNumber);
-                    }*/
+                    }
                 }
                 catch (Exception ex)
                 {

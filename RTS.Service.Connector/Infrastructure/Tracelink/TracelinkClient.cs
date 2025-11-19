@@ -180,7 +180,7 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
         {
             try
             {
-                var url = $"{_options.BaseUrl}{_options.Endpoints.GetItemsFromCrm}?token={_options.ApiToken}";
+                var url = $"{_options.BaseUrl}{_options.Endpoints.GetItemList}?token={_options.ApiToken}";
                 var response = await _client.PostAsync(url, null, token);
 
                 if (!response.IsSuccessStatusCode)
@@ -189,7 +189,10 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
                 }
 
                 var json = await response.Content.ReadAsStringAsync(token);
-                var item = TracelinkParser.ExtractItems(json);
+                var item = TracelinkParser.ExtractItemList(json);
+
+                var objId = item.Where(x => !string.IsNullOrWhiteSpace(x.ObjectId)).Select(x => x.ObjectId).ToList();
+
                 var match = item.FirstOrDefault(i => string.Equals(i.ObjectId, objectId, StringComparison.OrdinalIgnoreCase));
 
                 if (match == null)

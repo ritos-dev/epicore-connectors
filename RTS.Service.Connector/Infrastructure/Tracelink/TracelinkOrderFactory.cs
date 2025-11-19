@@ -7,7 +7,7 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
         public static CompleteTracelinkDto Create(
             TracelinkOrderListDto orderList, 
             TracelinkOrderDto orderDetails, 
-            TracelinkCustomerDto customer, 
+            /*TracelinkCustomerDto customer,*/ 
             TracelinkCRMDto crm)
         {
             return new CompleteTracelinkDto
@@ -25,11 +25,11 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
                 UpdatedAt = orderDetails.UpdatedAt,
 
                 // customer list
-                CustomerId = customer.CustomerId,
+                /*CustomerId = customer.CustomerId,
                 CustomerAddress = customer.CustomerAddress,
                 CustomerCity = customer.CustomerCity,
                 CustomerPostalCode = customer.CustomerPostalcode,
-                CompanyType = customer.CompanyType,
+                CompanyType = customer.CompanyType,*/
 
                 // crm list
                 CrmNumber = crm.CrmNumber,

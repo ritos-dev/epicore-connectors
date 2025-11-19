@@ -1,5 +1,4 @@
 ﻿using RTS.Service.Connector.Domain.Enums;
-using RTS.Service.Connector.DTOs;
 using RTS.Service.Connector.Interfaces;
 
 namespace RTS.Service.Connector.Infrastructure.InvoiceSplit
@@ -27,21 +26,21 @@ namespace RTS.Service.Connector.Infrastructure.InvoiceSplit
                 {
                     Description = "Depositum",
                     Percentage = 0.10m,
-                    NetPrice = totalAmount * 0.10m,
+                    NetPrice = Math.Round(totalAmount * 0.10m, 2, MidpointRounding.AwayFromZero),
                     ProductNumber = "4", // Will be changed to equivalent "Varenummer" in RTS economic 
                 },
                 new InvoicePart
                 {
                     Description = "1. Rate",
                     Percentage = 0.50m,
-                    NetPrice = totalAmount * 0.50m,
+                    NetPrice = Math.Round(totalAmount * 0.50m, 2, MidpointRounding.AwayFromZero),
                     ProductNumber = "5", // Will be changed to equivalent "Varenummer" in RTS economic 
                 },
                 new InvoicePart
                 {
                     Description = "2. Rate",
                     Percentage = 0.40m,
-                    NetPrice = totalAmount * 0.40m,
+                    NetPrice = Math.Round(totalAmount * 0.40m, 2, MidpointRounding.AwayFromZero),
                     ProductNumber = "6", // Will be changed to equivalent "Varenummer" in RTS economic 
                 },
             };
