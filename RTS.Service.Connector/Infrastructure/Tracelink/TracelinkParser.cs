@@ -1,66 +1,107 @@
 ﻿using Newtonsoft.Json.Linq;
 using RTS.Service.Connector.DTOs;
 
-namespace RTS.Service.Connector.Infrastructure.Tracelink;
-
-public class TracelinkParser
+namespace RTS.Service.Connector.Infrastructure.Tracelink
 {
-    private readonly ILogger<ConnectorBackgroundWorker> _logger;
 
-    public TracelinkParser(ILogger<ConnectorBackgroundWorker> logger)
-    {
-        _logger = logger;
-    }
+    // This class is responsible for moving JSON data from objects / arrays to DTO's.
 
-    /// <summary>
-    /// Extracts an order list from a TraceLink JSON response.
-    /// Handles both top-level arrays and object-wrapped arrays (e.g. "data", "orders", "result").
-    /// </summary>
-    public static List<TracelinkOrderDto> ExtractOrders(string json)
+    public static class TracelinkParser
     {
-        try
+        // Extract order list
+        public static List<TracelinkOrderListDto> ExtractOrderList(string json)
         {
-            var token = JToken.Parse(json);
-
-            JArray? array = token switch
+            try
             {
-                JArray directArray => directArray,
-                JObject obj => obj.Properties()
-                    .Select(p => p.Value)
-                    .OfType<JArray>()
-                    .FirstOrDefault(),
-                _ => null
-            };
+                var root = JObject.Parse(json);
+                var array = root["order"] as JArray;
 
-            return array?.ToObject<List<TracelinkOrderDto>>() ?? new List<TracelinkOrderDto>();
+                return array?.ToObject<List<TracelinkOrderListDto>>() ?? new List<TracelinkOrderListDto>();
+            }
+            catch
+            {
+                return new List<TracelinkOrderListDto>();
+            }
         }
-        catch (Exception)
-        {
-            return new List<TracelinkOrderDto>();
-        }
-    }
 
-    /// <summary>
-    /// Extracts a single order by ID from TraceLink JSON.
-    /// Used when calling /tracelink/order/{orderId}.
-    /// </summary>
-    public static TracelinkOrderDto? ExtractSingleOrder(string json)
-    {
-        try
+        // Extract single order
+        public static TracelinkOrderDto? ExtractSingleOrder(string json)
         {
-            var root = JObject.Parse(json);
-            var orderToken = root["order"]; 
+            try
+            {
+                var root = JObject.Parse(json);
+                var orderObj = root["order"] as JObject;
 
-            if (orderToken == null)
+                return orderObj?.ToObject<TracelinkOrderDto>();
+            }
+            catch
             {
                 return null;
             }
-
-            return orderToken.ToObject<TracelinkOrderDto>();
         }
-        catch (Exception)
+
+        // Extract customer list
+        public static List<TracelinkCustomerDto> ExtractCustomerList(string json)
         {
-            return null;
+            try
+            {
+                var root = JObject.Parse(json);
+                var array = root["objects"] as JArray;
+
+                return array?.ToObject<List<TracelinkCustomerDto>>() ?? new List<TracelinkCustomerDto>();
+            }
+            catch
+            {
+                return new List<TracelinkCustomerDto>();
+            }
+        }
+
+        // Extract CRM list
+        public static List<TracelinkCRMDto> ExtractCRM(string json)
+        {
+            try
+            {
+                var root = JObject.Parse(json);
+                var array = root["objects"] as JArray;
+
+                return array?.ToObject<List<TracelinkCRMDto>>() ?? new List<TracelinkCRMDto>();
+            }
+            catch
+            {
+                return new List<TracelinkCRMDto>();
+            }
+        }
+
+        // Extract items attached to CRM
+        public static List<TracelinkItemsDto> ExtractItemsFromCrm(string json)
+        {
+            try
+            {
+                var root = JObject.Parse(json);
+                var array = root["objects"] as JArray;
+
+                return array?.ToObject<List<TracelinkItemsDto>>() ?? new List<TracelinkItemsDto>();
+            }
+            catch 
+            {
+                return new List<TracelinkItemsDto>();
+            }
+        }
+
+        // Extract item list 
+        public static List<TracelinkItemsListDto> ExtractItemList(string json)
+        {
+            try
+            {
+                var root = JObject.Parse(json);
+                var array = root["objects"] as JArray;
+
+                return array?.ToObject<List<TracelinkItemsListDto>>() ?? new List<TracelinkItemsListDto>();
+            }
+            catch
+            {
+                return new List<TracelinkItemsListDto>();
+            }
         }
     }
 }

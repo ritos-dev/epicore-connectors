@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace RTS.Service.Connector.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251119121332_SmallChangesToInvoiceLineTable")]
+    partial class SmallChangesToInvoiceLineTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -66,9 +69,6 @@ namespace RTS.Service.Connector.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<int?>("SummaryReportId")
-                        .HasColumnType("int");
-
                     b.Property<string>("TLOrderNumber")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -78,8 +78,6 @@ namespace RTS.Service.Connector.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("SummaryReportId");
 
                     b.ToTable("Invoices", (string)null);
                 });
@@ -152,63 +150,6 @@ namespace RTS.Service.Connector.Migrations
                     b.ToTable("TracelinkOrders", (string)null);
                 });
 
-            modelBuilder.Entity("RTS.Service.Connector.Domain.SummaryInvoiceReport.Entities.SummaryReport", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CrmId")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<int>("Currency")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CustomerName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int>("ExpectedInvoices")
-                        .HasColumnType("int");
-
-                    b.Property<int>("InvoiceCount")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("TotalAmount")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("decimal(18,2)")
-                        .HasDefaultValue(0m);
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("SummaryInvoiceReports", (string)null);
-                });
-
-            modelBuilder.Entity("RTS.Service.Connector.Domain.Invoices.Entities.Invoice", b =>
-                {
-                    b.HasOne("RTS.Service.Connector.Domain.SummaryInvoiceReport.Entities.SummaryReport", "SummaryReport")
-                        .WithMany("Invoices")
-                        .HasForeignKey("SummaryReportId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("SummaryReport");
-                });
-
             modelBuilder.Entity("RTS.Service.Connector.Domain.Invoices.Entities.InvoiceLine", b =>
                 {
                     b.HasOne("RTS.Service.Connector.Domain.Invoices.Entities.Invoice", "Invoice")
@@ -223,11 +164,6 @@ namespace RTS.Service.Connector.Migrations
             modelBuilder.Entity("RTS.Service.Connector.Domain.Invoices.Entities.Invoice", b =>
                 {
                     b.Navigation("Lines");
-                });
-
-            modelBuilder.Entity("RTS.Service.Connector.Domain.SummaryInvoiceReport.Entities.SummaryReport", b =>
-                {
-                    b.Navigation("Invoices");
                 });
 #pragma warning restore 612, 618
         }
