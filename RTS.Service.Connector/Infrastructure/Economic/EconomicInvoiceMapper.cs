@@ -2,7 +2,6 @@
 
 using RTS.Service.Connector.DTOs;
 using RTS.Service.Connector.Infrastructure.InvoiceSplit;
-using static Azure.Core.HttpHeader;
 
 namespace RTS.Service.Connector.Infrastructure.Economic
 {
@@ -37,9 +36,9 @@ namespace RTS.Service.Connector.Infrastructure.Economic
                 Recipient = new EconomicRecipient
                 {
                     Name = tracelink.CustomerName,
-                    CustomerAddress = tracelink.CustomerAddress,
-                    CustomerZipCode = tracelink.CustomerPostalCode,
-                    CustomerCity = tracelink.CustomerCity,
+                    CustomerAddress = "tracelink.CustomerAddress",
+                    CustomerZipCode = "tracelink.CustomerPostalCode",
+                    CustomerCity = "tracelink.CustomerCity",
 
                     VatZone = new EconomicVatZone
                     {
@@ -61,7 +60,7 @@ namespace RTS.Service.Connector.Infrastructure.Economic
             {
                 Description = invoicePart.Description,
                 Quantity = 1,
-                UnitNetPrice = invoicePart.Amount,
+                UnitNetPrice = invoicePart.NetPrice,
                 VatRate = 0,
                 Product = new EconomicProducts
                 {

@@ -60,7 +60,7 @@ namespace RTS.Service.Connector.Infrastructure.Services
                 DraftInvoiceNumber = draft.DraftInvoiceNumber, 
                 InvoiceCreateDate = DateTime.UtcNow,
                 InvoiceDueDate = CalcDueTime(draft.PaymentTerms),
-                InvoiceAmount = draft.Totals?.GrossAmount ?? 0,
+                InvoiceAmount = draft.Lines?.Sum(x=>x.Quantity*x.UnitNetPrice) ?? 0,
                 InvoiceNumber = 0, // invoice number out of max invoices for CRM order
 
                 Status = "Draft",

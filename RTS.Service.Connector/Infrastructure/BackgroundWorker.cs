@@ -1,10 +1,10 @@
-﻿using RTS.Service.Connector.DTOs;
-using RTS.Service.Connector.Interfaces;
+﻿using Microsoft.Extensions.Options;
+using RTS.Service.Connector.DTOs;
 using RTS.Service.Connector.Infrastructure.Economic;
-using RTS.Service.Connector.Infrastructure.Tracelink;
 using RTS.Service.Connector.Infrastructure.InvoiceSplit;
-
-using Microsoft.Extensions.Options;
+using RTS.Service.Connector.Infrastructure.Services;
+using RTS.Service.Connector.Infrastructure.Tracelink;
+using RTS.Service.Connector.Interfaces;
 
 namespace RTS.Service.Connector.Infrastructure
 {
@@ -57,7 +57,7 @@ namespace RTS.Service.Connector.Infrastructure
                     if (!listResult.IsSuccess)
                     {
                         _logger.LogInformation("[Worker] Failed to find order in list");
-                        return;
+                        continue;
                     }
 
                     var orderId = listResult.Data!.OrderId;
@@ -70,21 +70,21 @@ namespace RTS.Service.Connector.Infrastructure
                     
                     if(!orderResult.IsSuccess)
                     {
-                        _logger.LogInformation("[Worker] Failed to fetch full order.");
-                        return;
+                        _logger.LogInformation("[Worker] Failed to fetch full order for {OrderNumber}.", orderNumber);
+                        continue;
                     }
 
                     var orderDetails = orderResult.Data; // for specifics look into TracelinkOrderDto
 
                     // Find the customer in the list
-                    var customerResult = await _tracelinkClient.GetCustomerListAsync(customerName, stoppingToken);
+                    /*var customerResult = await _tracelinkClient.GetCustomerListAsync(customerName, stoppingToken);
 
                     if (!customerResult.IsSuccess)
                     {
                         _logger.LogInformation("[Worker] Failed to fetch customer.");
-                        return;
+                        continue;
                     }
-                    _logger.LogInformation("[Worker] Looking up customer with name: '{Name}'", customerName);
+                    _logger.LogInformation("[Worker] Looking up customer with name: '{Name}'", customerName);*/
 
                     // Get crm
                     var crmResult = await _tracelinkClient.GetCrmListAsync(customerName, stoppingToken);
@@ -92,30 +92,77 @@ namespace RTS.Service.Connector.Infrastructure
                     if (!crmResult.IsSuccess)
                     {
                         _logger.LogInformation("[Worker] Failed to find CRM.");
-                        return;
+                        continue;
                     }
 
                     var crmNumber = crmResult.Data!.CrmNumber;
+                    var crmId = crmResult.Data!.CrmId;
+
                     _logger.LogInformation("[Worker] Looking up customer with CRM: '{CRM}'", crmNumber);
 
+                    // Get items connected to crm
+                    var crmItemsResult = await _tracelinkClient.GetItemsFromCrmAsync(crmId, stoppingToken);
+
+                    if (!crmItemsResult.IsSuccess)
+                    {
+                        _logger.LogInformation("[Worker] Failed to find items connected to CRM.");
+                        continue;
+                    }
+
+                    var combinedItems = new List<TracelinkCombinedItemsDto>();
+                    
+                    foreach (var crmItem in crmItemsResult.Data!)
+                    {
+                        var itemDetailsResult = await _tracelinkClient.GetItemListAsync(crmItem.GenObjectId, stoppingToken);
+
+                        if (!itemDetailsResult.IsSuccess)
+                        {
+                            _logger.LogWarning("[Worker] Failed price lookup for genobj_id {Id}", crmItem.GenObjectId);
+                            continue;
+                        }
+
+                        // From string to decimal
+                        decimal price = 0;
+
+                        if (!decimal.TryParse(itemDetailsResult.Data!.ItemPrice, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out price))
+                        {
+                            _logger.LogWarning("[Worker] Failed to parse price '{Price}' for genobj_id {Id}", itemDetailsResult.Data!.ItemPrice, crmItem.GenObjectId);
+                            continue;
+                        }
+
+                        combinedItems.Add(new TracelinkCombinedItemsDto
+                        {
+                            ObjectId = crmItem.GenObjectId,
+                            ItemAmount = crmItem.ItemAmount,
+                            Price = price
+                        });
+                    }
+
                     // Combined tracelink dto
-                    var combinedDto = TracelinkOrderFactory.Create(listResult.Data!, orderResult.Data!, customerResult.Data!, crmResult.Data!);
+                    var combinedDto = TracelinkOrderFactory.Create(listResult.Data!, orderResult.Data!, /*customerResult.Data!,*/ crmResult.Data!);
+                    
+                    if (combinedDto.CrmNumber is null)
+                    {
+                        _logger.LogError("[Worker] CRM number is null for order {OrderNumber}. Skipping invoice creation.", combinedDto.OrderNumber);
+                        continue;
+                    }
+
+                    combinedDto.Items = combinedItems;
 
                     // Customer type classification
                     var customerType = CustomerTypeClassifier.Classify(combinedDto.CompanyType);
                     _logger.LogInformation("[Worker] Customer type for order {OrderNumber} is {CustomerType}", combinedDto.OrderNumber, customerType);
 
-                    // TEST AMOUNT THIS WILL BE REPLACED!
-                    var totalAmount = _options.TestTotalAmount;
-                    _logger.LogWarning("[TEST] TEST TOTAL AMOUNT FOR SPLITTING.");
+                    // Calculate total net price
+                    var totalNetPrice = combinedItems.Sum(i => i.ItemAmount * i.Price);
 
                     // Save order to database
-                    /*using (var scope = _scopeFactory.CreateScope())
+                    using (var scope = _scopeFactory.CreateScope())
                     {
                         var persistence = scope.ServiceProvider.GetRequiredService<TracelinkPersistenceService>();
                         await persistence.SaveOrderAsync(combinedDto);
                         _logger.LogInformation("[Worker] Order saved successfully for TraceLink order {OrderNumber}", combinedDto.OrderNumber);
-                    }*/
+                    }
 
                     // Fetch order draft from Economic
                     var draftResult = await _economicClient.GetOrderDraftIfExistsAsync(combinedDto.OrderNumber, stoppingToken);
@@ -123,11 +170,11 @@ namespace RTS.Service.Connector.Infrastructure
                     if (!draftResult.IsSuccess)
                     {
                         _logger.LogInformation("[Worker] Order {OrderNumber} not found or failed: {Error}", orderNumber, draftResult.ErrorMessage);
-                        return;
+                        continue;
                     }
 
                     // Split service for invoices
-                    var invoiceParts = _split.Split(totalAmount, customerType);
+                    var invoiceParts = _split.Split(totalNetPrice, customerType);
                     _logger.LogInformation("[Split] {Count} invoice parts generated for order {OrderNumber}", invoiceParts.Count, combinedDto.OrderNumber);
 
                     if (invoiceParts.Count == 0)
@@ -149,10 +196,10 @@ namespace RTS.Service.Connector.Infrastructure
 
                         invoiceDrafts.Add(draft);
 
-                        _logger.LogInformation("[Mapper] Created invoice draft: '{Desc}' (Amount {Amount}) for order {OrderNumber}", part.Description, part.Amount, combinedDto.OrderNumber);
+                        _logger.LogInformation("[Mapper] Created invoice draft: '{Desc}' (Amount {Amount}) for order {OrderNumber}", part.Description, part.NetPrice, combinedDto.OrderNumber);
                     }
 
-                    // Create invoice draft in economic
+                    // Create invoice draft in economic and save it to database
                     foreach (var draft in invoiceDrafts)
                     {
                         _logger.LogInformation("[Worker] Creating invoice draft for '{Description}' (Amount {Amount})", draft.Lines.First().Description, draft.Lines.First().UnitNetPrice);
@@ -166,15 +213,15 @@ namespace RTS.Service.Connector.Infrastructure
                         }
 
                         _logger.LogInformation("[Worker] Successfully created invoice for '{Description}' (Order {OrderNumber})", draft.Lines.First().Description, combinedDto.OrderNumber);
-                    }
 
-                    // Save invoice to database
-                    /*using (var scope = _scopeFactory.CreateScope())
-                    {
-                        var persistence = scope.ServiceProvider.GetRequiredService<InvoicePersistenceService>();
-                        await persistence.SaveInvoiceAsync(invoiceResult.Data!, orderNumber, crmNumber!, stoppingToken);
-                        _logger.LogInformation("[Worker] Invoice information saved successfully for order {OrderNumber} with CRM {crmNumber}", orderNumber, crmNumber);
-                    }*/
+                        // Save invoice to database
+                        using (var scope = _scopeFactory.CreateScope())
+                        {
+                            var persistence = scope.ServiceProvider.GetRequiredService<InvoicePersistenceService>();
+                            await persistence.SaveInvoiceAsync(invoiceResult.Data!, orderNumber, crmNumber!, stoppingToken);
+                            _logger.LogInformation("[Worker] Invoice information saved successfully for order {OrderNumber} with CRM {crmNumber}", orderNumber, crmNumber);
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
