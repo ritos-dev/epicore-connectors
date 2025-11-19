@@ -2,7 +2,7 @@
 
 namespace RTS.Service.Connector.DTOs
 {
-    public sealed class EconomicInvoiceDraft
+    public class EconomicInvoiceDraft
     {
         [JsonProperty("draftInvoiceNumber")]
         public int? DraftInvoiceNumber { get; set; }
@@ -39,12 +39,12 @@ namespace RTS.Service.Connector.DTOs
     }
 
     // Invoice customer and recipient
-    public sealed class EconomicCustomer
+    public class EconomicCustomer
     {
         [JsonProperty("customerNumber")]
         public int CustomerNumber { get; set; }
     }
-    public sealed class EconomicRecipient
+    public class EconomicRecipient
     {
         [JsonProperty("name")]
         public string? Name { get; set; }
@@ -63,7 +63,7 @@ namespace RTS.Service.Connector.DTOs
     }
 
     // Invoice lines
-    public sealed class EconomicInvoiceLine
+    public class EconomicInvoiceLine
     {
         [JsonProperty("description")]
         public string? Description { get; set; }
@@ -80,34 +80,34 @@ namespace RTS.Service.Connector.DTOs
         [JsonProperty("product")]
         public EconomicProducts? Product { get; set; }
     }
-    public sealed class EconomicProducts
+    public class EconomicProducts
     {
         [JsonProperty("productNumber")]
         public string? ProductNumber { get; set; }
     }
 
     // Other invoice fields 
-    public sealed class EconomicPaymentTerms
+    public class EconomicPaymentTerms
     {
         [JsonProperty("paymentTermsNumber")]
         public int PaymentTermsNumber { get; set; }
     }
-    public sealed class EconomicLayout
+    public class EconomicLayout
     {
         [JsonProperty("layoutNumber")]
         public int LayoutNumber { get; set; }
     }
-    public sealed class EconomicVatZone
+    public class EconomicVatZone
     {
         [JsonProperty("vatZoneNumber")]
         public int VatZoneNumber { get; set; }
     }
-    public sealed class EconomicReferences
+    public class EconomicReferences
     {
         [JsonProperty("other")]
         public string Other { get; set; } = string.Empty;
     }
-    public sealed class EconomicTotals
+    public class EconomicTotals
     {
         [JsonProperty("netAmount")]
         public decimal NetAmount { get; set; }
@@ -118,12 +118,12 @@ namespace RTS.Service.Connector.DTOs
         [JsonProperty("grossAmount")]
         public decimal GrossAmount { get; set; }
     }
-    public sealed class EconomicNotes
+    public class EconomicNotes
     {
         [JsonProperty("textLine1")]
         public string? TextLine1 { get; set; } = string.Empty;
 
         [JsonProperty("textLine2")]
         public string? TextLine2 { get; set; } = string.Empty;
-    } 
+    }
 }

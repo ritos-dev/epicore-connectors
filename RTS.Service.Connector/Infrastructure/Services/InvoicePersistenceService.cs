@@ -32,6 +32,7 @@ namespace RTS.Service.Connector.Infrastructure.Services
 
                 var invoice = DbInvoiceMapper.ToEntity(draft, orderNumber, crmNumber);
 
+                // summary report for invoices with same CRM
                 var summary = await CreateOrUpdateSummaryReport(crmNumber, invoice.CustomerName, invoice.Currency, invoice.InvoiceAmount, cancellationToken);
                 invoice.SummaryReport = summary;
 
@@ -47,10 +48,14 @@ namespace RTS.Service.Connector.Infrastructure.Services
             }
         }
 
-        private async Task<SummaryReport> CreateOrUpdateSummaryReport(string crmNumber, string customerName, Currency currency, decimal invoiceAmount, CancellationToken cancellationToken)
+        private async Task<SummaryReport> CreateOrUpdateSummaryReport(
+            string crmNumber, 
+            string customerName,
+            Currency currency, 
+            decimal invoiceAmount, 
+            CancellationToken cancellationToken)
         {
             var summary = await _context.SummaryInvoiceReports.FirstOrDefaultAsync(s => s.CrmId == crmNumber, cancellationToken);
-
 
             if (summary == null)
             {
@@ -62,7 +67,6 @@ namespace RTS.Service.Connector.Infrastructure.Services
                     Currency = currency,
                     InvoiceCount = 1,
                     TotalAmount = invoiceAmount,
-                    Status = "Not Implemented",
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -76,9 +80,6 @@ namespace RTS.Service.Connector.Infrastructure.Services
                 summary.InvoiceCount += 1;
                 summary.TotalAmount += invoiceAmount;
                 summary.UpdatedAt = DateTime.UtcNow;
-
-                // for later track expected invoices: 
-                // if (summary.CreatedInvoices == summary.ExpectedInvoices) summary.Status = "Closed";   Maybe needs to be deleted idk. 
             }
 
             return summary;
@@ -95,15 +96,12 @@ namespace RTS.Service.Connector.Infrastructure.Services
                 CrmId = crmNumber,
                 CustomerName = draft.Recipient?.Name ?? "Unknown",
 
-                Currency = Enum.TryParse(draft.Currency, true, out Currency parsed)
-                    ? parsed
-                    : Currency.DKK,
+                Currency = Enum.TryParse(draft.Currency, true, out Currency parsed) ? parsed : Currency.DKK,
 
                 DraftInvoiceNumber = draft.DraftInvoiceNumber,
                 InvoiceCreateDate = DateTime.UtcNow,
                 InvoiceDueDate = CalcDueTime(draft.PaymentTerms),
                 InvoiceAmount = draft.Lines?.Sum(x=>x.Quantity*x.UnitNetPrice) ?? 0,
-                InvoiceNumber = 0, // invoice number out of max invoices for CRM order
 
                 Status = "Draft",
                 UpdatedAt = DateTime.UtcNow
