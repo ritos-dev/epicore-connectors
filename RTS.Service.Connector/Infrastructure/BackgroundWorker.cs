@@ -77,14 +77,14 @@ namespace RTS.Service.Connector.Infrastructure
                     var orderDetails = orderResult.Data; // for specifics look into TracelinkOrderDto
 
                     // Find the customer in the list
-                    /*var customerResult = await _tracelinkClient.GetCustomerListAsync(customerName, stoppingToken);
+                    var customerResult = await _tracelinkClient.GetCustomerListAsync(customerName, stoppingToken);
 
                     if (!customerResult.IsSuccess)
                     {
                         _logger.LogInformation("[Worker] Failed to fetch customer.");
                         continue;
                     }
-                    _logger.LogInformation("[Worker] Looking up customer with name: '{Name}'", customerName);*/
+                    _logger.LogInformation("[Worker] Looking up customer with name: {Name}", customerName);
 
                     // Get crm
                     var crmResult = await _tracelinkClient.GetCrmListAsync(customerName, stoppingToken);
@@ -98,7 +98,7 @@ namespace RTS.Service.Connector.Infrastructure
                     var crmNumber = crmResult.Data!.CrmNumber;
                     var crmId = crmResult.Data!.CrmId;
 
-                    _logger.LogInformation("[Worker] Looking up customer with CRM: '{CRM}'", crmNumber);
+                    _logger.LogInformation("[Worker] Looking up customer with CRM: {CRM}", crmNumber);
 
                     // Get items connected to crm
                     var crmItemsResult = await _tracelinkClient.GetItemsFromCrmAsync(crmId, stoppingToken);

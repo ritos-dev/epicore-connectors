@@ -36,9 +36,9 @@ namespace RTS.Service.Connector.Infrastructure.Economic
                 Recipient = new EconomicRecipient
                 {
                     Name = tracelink.CustomerName,
-                    CustomerAddress = "tracelink.CustomerAddress",
-                    CustomerZipCode = "tracelink.CustomerPostalCode",
-                    CustomerCity = "tracelink.CustomerCity",
+                    CustomerAddress = tracelink.CustomerAddress,
+                    CustomerZipCode = tracelink.CustomerPostalCode,
+                    CustomerCity = tracelink.CustomerCity,
 
                     VatZone = new EconomicVatZone
                     {
