@@ -21,11 +21,17 @@ namespace RTS.Service.Connector.Controllers
         [HttpGet("webhook")]
         public IActionResult ReceiveOrder([FromQuery]  string orderNumber)
         {
-            _logger.LogInformation("[TraceLink Webhook] Order is ready to be invoiced. OrderNumber: {OrderNumber}", orderNumber);
-
-            _queue.Enqueue(orderNumber);
-
-            return Accepted();
+            try
+            {
+                _logger.LogInformation("Received order number: {OrderNumber}", orderNumber);
+                _queue.Enqueue(orderNumber);
+                return Accepted();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to enqueue order number: {OrderNumber}", orderNumber);
+                return BadRequest();
+            }
         }
     }
 }

@@ -139,7 +139,7 @@ namespace RTS.Service.Connector.Infrastructure
                     }
 
                     // Combined tracelink dto
-                    var combinedDto = TracelinkOrderFactory.Create(listResult.Data!, orderResult.Data!, /*customerResult.Data!,*/ crmResult.Data!);
+                    var combinedDto = TracelinkOrderFactory.Create(listResult.Data!, orderResult.Data!, customerResult.Data!, crmResult.Data!);
                     
                     if (combinedDto.CrmNumber is null)
                     {
