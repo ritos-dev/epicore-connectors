@@ -7,7 +7,6 @@ namespace RTS.Service.Connector.Test.Tracelink
 {
     public class TracelinkParserTests
     {
-        // --- Helper JSON strings ---
         private string ValidOrderListJson() => @"{ ""order"": [
             { ""order_id"": ""1"", ""number"": ""100"", ""name"": ""Order A"" },
             { ""order_id"": ""2"", ""number"": ""101"", ""name"": ""Order B"" }
