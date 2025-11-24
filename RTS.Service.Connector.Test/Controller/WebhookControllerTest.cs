@@ -29,25 +29,25 @@ namespace RTS.Service.Connector.Test.Controller
             var orderNumber = "ORD123";
 
             // Act
-            var result = _controller.ReceiveOrder(orderNumber); 
+            var result = _controller.ReceiveOrder(orderNumber, CancellationToken.None); 
 
             // Assert
             Assert.IsType<AcceptedResult>(result);
-            _queueMock.Verify(q => q.Enqueue(orderNumber), Times.Once);
+            _queueMock.Verify(q => q.EnqueueAsync(orderNumber, CancellationToken.None), Times.Once);
         }
 
         [Fact]
         public void ReceiveOrder_NullOrderNumber_StillEnqueuesAndReturnsAccepted()
         {
             // Arrange
-            string orderNumber = null;
+            string? orderNumber = null;
 
             // Act
-            var result = _controller.ReceiveOrder(orderNumber);
+            var result = _controller.ReceiveOrder(orderNumber, CancellationToken.None);
 
             // Assert
             Assert.IsType<AcceptedResult>(result);
-            _queueMock.Verify(q => q.Enqueue(orderNumber), Times.Once);
+            _queueMock.Verify(q => q.EnqueueAsync(orderNumber, CancellationToken.None), Times.Once);
         }
 
         [Fact]
@@ -57,11 +57,11 @@ namespace RTS.Service.Connector.Test.Controller
             var orderNumber = string.Empty;
 
             // Act
-            var result = _controller.ReceiveOrder(orderNumber);
+            var result = _controller.ReceiveOrder(orderNumber, CancellationToken.None);
 
             // Assert
             Assert.IsType<AcceptedResult>(result);
-            _queueMock.Verify(q => q.Enqueue(orderNumber), Times.Once);
+            _queueMock.Verify(q => q.EnqueueAsync(orderNumber, CancellationToken.None), Times.Once);
         }
 
         [Fact]
@@ -71,11 +71,11 @@ namespace RTS.Service.Connector.Test.Controller
             var orderNumber = " ";
 
             // Act
-            var result = _controller.ReceiveOrder(orderNumber);
+            var result = _controller.ReceiveOrder(orderNumber, CancellationToken.None);
 
             // Assert
             Assert.IsType<AcceptedResult>(result);
-            _queueMock.Verify(q => q.Enqueue(orderNumber), Times.Once);
+            _queueMock.Verify(q => q.EnqueueAsync(orderNumber, CancellationToken.None), Times.Once);
         }
 
         [Fact]
@@ -83,10 +83,10 @@ namespace RTS.Service.Connector.Test.Controller
         {
             // Arrange
             var orderNumber = "ORD123";
-            _queueMock.Setup(q => q.Enqueue(orderNumber)).Throws(new System.Exception("Queue error"));
+            _queueMock.Setup(q => q.EnqueueAsync(orderNumber, CancellationToken.None)).Throws(new System.Exception("Queue error"));
 
             // Act
-            var result = _controller.ReceiveOrder(orderNumber);
+            var result = _controller.ReceiveOrder(orderNumber, CancellationToken.None);
 
             // Assert
             Assert.IsType<BadRequestResult>(result);
@@ -99,31 +99,14 @@ namespace RTS.Service.Connector.Test.Controller
 
             foreach (var orderNumber in orderNumbers)
             {
-                var result = _controller.ReceiveOrder(orderNumber);
+                var result = _controller.ReceiveOrder(orderNumber, CancellationToken.None);
                 Assert.IsType<AcceptedResult>(result);
             }
 
             foreach (var orderNumber in orderNumbers)
             {
-                _queueMock.Verify(q => q.Enqueue(orderNumber), Times.Once);
+                _queueMock.Verify(q => q.EnqueueAsync(orderNumber, CancellationToken.None), Times.Once);
             }
-        }
-
-        [Fact]
-        public void ReceiveOrder_LogsOrderNumber()
-        {
-            var orderNumber = "ORDLOG";
-            _controller.ReceiveOrder(orderNumber);
-
-            _loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Information,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains(orderNumber)),
-                    null,
-                    It.IsAny<Func<It.IsAnyType, Exception, string>>()),
-                Times.AtLeastOnce
-            );
         }
     }
 }

@@ -9,7 +9,7 @@ namespace RTS.Service.Connector.Infrastructure
 
         public BackgroundTaskQueue()
         {
-            _queue = Channel.CreateBounded<string>(new BoundedChannelOptions(5) // bounded so we don't use too much memory if Tracelink fires too fast
+            _queue = Channel.CreateBounded<string>(new BoundedChannelOptions(5) // bounded so we don't use too much memory, will wait for an empty space in queue before acting again. 
             {
                 SingleReader = true, // only one consumer can process items
                 SingleWriter = false, // multiple producers can add items
@@ -17,9 +17,9 @@ namespace RTS.Service.Connector.Infrastructure
             });
         }
 
-        public void Enqueue(string orderNumber)
+        public async ValueTask EnqueueAsync(string orderNumber, CancellationToken token)
         {
-            _queue.Writer.TryWrite(orderNumber);
+            await _queue.Writer.WriteAsync(orderNumber, token);
         }
 
         public async Task<string> DequeueAsync(CancellationToken token)

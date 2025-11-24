@@ -19,12 +19,12 @@ namespace RTS.Service.Connector.Controllers
         }
 
         [HttpGet("webhook")]
-        public IActionResult ReceiveOrder([FromQuery]  string orderNumber)
+        public IActionResult ReceiveOrder([FromQuery]  string orderNumber, CancellationToken token)
         {
             try
             {
                 _logger.LogInformation("Received order number: {OrderNumber}", orderNumber);
-                _queue.Enqueue(orderNumber);
+                _queue.EnqueueAsync(orderNumber, token);
                 return Accepted();
             }
             catch (Exception ex)

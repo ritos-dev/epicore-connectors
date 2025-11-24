@@ -1,10 +1,11 @@
 ﻿using Microsoft.Extensions.Options;
+
 using RTS.Service.Connector.DTOs;
+using RTS.Service.Connector.Interfaces;
 using RTS.Service.Connector.Infrastructure.Economic;
-using RTS.Service.Connector.Infrastructure.InvoiceSplit;
 using RTS.Service.Connector.Infrastructure.Services;
 using RTS.Service.Connector.Infrastructure.Tracelink;
-using RTS.Service.Connector.Interfaces;
+using RTS.Service.Connector.Infrastructure.InvoiceSplit;
 
 namespace RTS.Service.Connector.Infrastructure
 {
@@ -16,7 +17,6 @@ namespace RTS.Service.Connector.Infrastructure
         private readonly IOrderSplitToInvoices _split;
         private readonly ILogger<ConnectorBackgroundWorker> _logger;
         private readonly IServiceScopeFactory _scopeFactory;
-        private readonly EconomicOptions _options;
         private readonly EconomicInvoiceMapper _mapper;
 
         public ConnectorBackgroundWorker(
@@ -35,7 +35,6 @@ namespace RTS.Service.Connector.Infrastructure
             _split = split;
             _logger = logger;
             _scopeFactory = scopeFactory;
-            _options = options.Value;
             _mapper = mapper; 
         }
 
