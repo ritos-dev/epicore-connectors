@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Text;
+using RTS.Service.Connector.Infrastructure.BackgroundWorker;
 
 
 namespace RTS.Service.Connector.Infrastructure.Economic
@@ -25,7 +26,7 @@ namespace RTS.Service.Connector.Infrastructure.Economic
             _options = options.Value;
         }
 
-        public async Task<ApiResult<string>> GetOrderDraftIfExistsAsync(string orderNumber, CancellationToken cancellationToken = default)
+        public async Task<ApiResult<EconomicInvoiceDraft>> GetOrderDraftIfExistsAsync(string orderNumber, CancellationToken cancellationToken = default)
         {
             // FOR TESTING ONLY! Manual override
             if (orderNumber != null)
@@ -40,15 +41,23 @@ namespace RTS.Service.Connector.Infrastructure.Economic
 
             var response = await _client.GetAsync(url, cancellationToken);
             if (!response.IsSuccessStatusCode)
-                return await Fail<string>(response, cancellationToken);
+                return await Fail<EconomicInvoiceDraft>(response, cancellationToken);
 
             var json = await response.Content.ReadAsStringAsync(cancellationToken);
             _logger.LogInformation("[Economic] Order draft {OrderNumber} fetched successfully.", orderNumber);
 
-            return ApiResult<string>.Success(json);
+            var dto = JsonConvert.DeserializeObject<EconomicInvoiceDraft>(json);
+
+            if (dto == null)
+            {
+                _logger.LogWarning("[Economic] Failed to deserialize JSON into EconomicInvoiceDraft for order {OrderNumber}.", orderNumber);
+                return ApiResult<EconomicInvoiceDraft>.Failure("API returned success, but JSON could not be deserialized into EconomicInvoiceDraft.");
+            }
+
+            return ApiResult<EconomicInvoiceDraft>.Success(dto);
         }
 
-        public async Task<ApiResult<string>> CreateInvoiceDraftAsync(EconomicInvoiceDraft draft, string orderNumber, string crmNumber, CancellationToken cancellationToken)
+        public async Task<ApiResult<EconomicInvoiceDraft>> CreateInvoiceDraftAsync(EconomicInvoiceDraft draft, string orderNumber, string crmNumber, CancellationToken cancellationToken)
         {
             var url = $"{_options.BaseUrl}{_options.Endpoints.CreateDraft}";
             var jsonBody = JsonConvert.SerializeObject(draft, Formatting.None);
@@ -60,7 +69,7 @@ namespace RTS.Service.Connector.Infrastructure.Economic
 
             var response = await _client.PostAsync(url, content, cancellationToken);
             if (!response.IsSuccessStatusCode)
-                return await Fail<string>(response, cancellationToken);
+                return await Fail<EconomicInvoiceDraft>(response, cancellationToken);
 
             var result = await response.Content.ReadAsStringAsync(cancellationToken);
 
@@ -76,7 +85,7 @@ namespace RTS.Service.Connector.Infrastructure.Economic
                 _logger.LogInformation("[Economic] Invoice number not found.");
             }
 
-            return ApiResult<string>.Success(result);
+            return ApiResult<EconomicInvoiceDraft>.Success(dto);
         }
 
         private async Task<ApiResult<T>> Fail<T>(HttpResponseMessage response, CancellationToken token)

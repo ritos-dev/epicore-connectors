@@ -6,20 +6,35 @@ using FluentAssertions;
 
 namespace RTS.Service.Connector.Tests.Infrastructure.Economic
 {
+   
     public class EconomicInvoiceMapperTests
     {
         private readonly EconomicInvoiceMapper _mapper = new();
 
-        private readonly string _json = 
-        """
+        private readonly EconomicInvoiceDraft _economicInvoiceDraftDto = new()
         {
-          "currency": "DKK",
-          "customer": { "customerNumber": 123 },
-          "paymentTerms": { "paymentTermsNumber": 10 },
-          "layout": { "layoutNumber": 5 },
-          "recipient": { "vatZone": { "vatZoneNumber": 2 } }
-        }
-        """;
+            Currency = "DKK",
+            Customer = new EconomicCustomer
+            {
+                CustomerNumber = 123
+            },
+            PaymentTerms = new EconomicPaymentTerms
+            {
+                PaymentTermsNumber = 10
+            },
+            Layout = new EconomicLayout
+            {
+                LayoutNumber = 5
+            },
+            Recipient = new EconomicRecipient
+            {
+                VatZone = new EconomicVatZone
+                {
+                    VatZoneNumber = 2
+                }
+            }
+            // Add other properties as needed for your tests
+        };
 
         private readonly CompleteTracelinkDto _tracelink = new()
         {
@@ -38,7 +53,7 @@ namespace RTS.Service.Connector.Tests.Infrastructure.Economic
             Percentage = 0.50m
         };
 
-        private EconomicInvoiceDraft CreateResult() => _mapper.MapToInvoiceDraft(_json, _tracelink, _invoicePart);
+        private EconomicInvoiceDraft CreateResult() => _mapper.MapToInvoiceDraft(_economicInvoiceDraftDto, _tracelink, _invoicePart);
 
 
         [Fact]

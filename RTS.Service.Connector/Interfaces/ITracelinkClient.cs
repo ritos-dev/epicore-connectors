@@ -1,5 +1,5 @@
 ﻿using RTS.Service.Connector.DTOs;
-using RTS.Service.Connector.Infrastructure;
+using RTS.Service.Connector.Infrastructure.BackgroundWorker;
 
 namespace RTS.Service.Connector.Interfaces
 {

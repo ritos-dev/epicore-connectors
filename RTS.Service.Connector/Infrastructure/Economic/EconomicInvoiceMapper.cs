@@ -7,30 +7,28 @@ namespace RTS.Service.Connector.Infrastructure.Economic
 {
     public class EconomicInvoiceMapper
     {
-        public EconomicInvoiceDraft MapToInvoiceDraft(string orderJson, CompleteTracelinkDto tracelink, InvoicePart invoicePart)
+        public EconomicInvoiceDraft MapToInvoiceDraft(EconomicInvoiceDraft dto, CompleteTracelinkDto tracelink, InvoicePart invoicePart)
         {
-            var root = JObject.Parse(orderJson);
-
             // Minimal required fields for invoice draft
             var draft = new EconomicInvoiceDraft
             {
                 Date = DateTime.UtcNow.ToString("yyyy-MM-dd"),
 
-                Currency = root["currency"]?.ToString(),
+                Currency = dto.Currency,
 
                 Customer = new EconomicCustomer
                 {
-                    CustomerNumber = (int)(root["customer"]?["customerNumber"] ?? 0),
+                    CustomerNumber = dto.Customer.CustomerNumber,
                 },
 
                 PaymentTerms = new EconomicPaymentTerms
                 {
-                    PaymentTermsNumber = (int)(root["paymentTerms"]?["paymentTermsNumber"] ?? 0)
+                    PaymentTermsNumber = dto.PaymentTerms.PaymentTermsNumber,
                 },
 
                 Layout = new EconomicLayout
                 {
-                    LayoutNumber = (int)(root["layout"]?["layoutNumber"] ?? 0)
+                    LayoutNumber = dto.Layout.LayoutNumber,
                 },
 
                 Recipient = new EconomicRecipient
@@ -42,7 +40,7 @@ namespace RTS.Service.Connector.Infrastructure.Economic
 
                     VatZone = new EconomicVatZone
                     {
-                        VatZoneNumber = (int)(root["recipient"]?["vatZone"]?["vatZoneNumber"] ?? 0)
+                        VatZoneNumber = dto.Recipient.VatZone.VatZoneNumber,
                     }
                 },
 

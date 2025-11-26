@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using RTS.Service.Connector.Interfaces;
 using RTS.Service.Connector.DTOs;
+using RTS.Service.Connector.Infrastructure.BackgroundWorker;
 
 namespace RTS.Service.Connector.Infrastructure.Tracelink
 {

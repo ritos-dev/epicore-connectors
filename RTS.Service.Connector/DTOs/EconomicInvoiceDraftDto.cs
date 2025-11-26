@@ -1,9 +1,27 @@
 ﻿using Newtonsoft.Json;
+using RTS.Service.Connector.Infrastructure.BackgroundWorker;
 
 namespace RTS.Service.Connector.DTOs
 {
     public class EconomicInvoiceDraft
     {
+        public static implicit operator ApiResult<string>(EconomicInvoiceDraft draft)
+        {
+            if (draft == null)
+            {
+                return ApiResult<string>.Failure("EconomicInvoiceDraft object was null during conversion.");
+            }
+
+            if (draft.DraftInvoiceNumber.HasValue)
+            {
+                return ApiResult<string>.Success(draft.DraftInvoiceNumber.Value.ToString());
+            }
+            else
+            {
+                return ApiResult<string>.Failure("Economic draft successfully fetched but contained no DraftInvoiceNumber.");
+            }
+        }
+
         [JsonProperty("draftInvoiceNumber")]
         public int? DraftInvoiceNumber { get; set; }
 

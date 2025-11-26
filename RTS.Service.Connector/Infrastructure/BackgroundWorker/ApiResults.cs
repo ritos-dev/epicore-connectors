@@ -1,4 +1,6 @@
-﻿namespace RTS.Service.Connector.Infrastructure
+﻿using RTS.Service.Connector.DTOs;
+
+namespace RTS.Service.Connector.Infrastructure.BackgroundWorker
 {
     public sealed record ApiResult<T>
     (

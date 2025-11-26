@@ -1,7 +1,7 @@
 ﻿using System.Threading.Channels;
 using RTS.Service.Connector.Interfaces;
 
-namespace RTS.Service.Connector.Infrastructure
+namespace RTS.Service.Connector.Infrastructure.BackgroundWorker
 {
     public class BackgroundTaskQueue : IBackgroundTaskQueue
     {

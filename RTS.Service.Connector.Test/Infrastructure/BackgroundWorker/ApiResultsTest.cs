@@ -1,8 +1,7 @@
-﻿using RTS.Service.Connector.Infrastructure;
+﻿using FluentAssertions;
+using RTS.Service.Connector.Infrastructure.BackgroundWorker;
 
-using FluentAssertions;
-
-namespace RTS.Service.Connector.Tests.Infrastructure
+namespace RTS.Service.Connector.Test.Infrastructure.BackgroundWorker
 {
     public class ApiResultTests
     {

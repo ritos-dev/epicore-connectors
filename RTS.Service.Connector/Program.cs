@@ -3,11 +3,11 @@ using Microsoft.Extensions.Options;
 using Microsoft.EntityFrameworkCore;
 
 using RTS.Service.Connector.Interfaces;
-using RTS.Service.Connector.Infrastructure;
 using RTS.Service.Connector.Infrastructure.Services;
 using RTS.Service.Connector.Infrastructure.Economic;
 using RTS.Service.Connector.Infrastructure.Tracelink;
 using RTS.Service.Connector.Infrastructure.InvoiceSplit;
+using RTS.Service.Connector.Infrastructure.BackgroundWorker;
 
 var builder = WebApplication.CreateBuilder(args);
 
