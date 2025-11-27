@@ -1,7 +1,8 @@
-﻿using Microsoft.Extensions.Options;
-using RTS.Service.Connector.Interfaces;
+﻿using RTS.Service.Connector.Interfaces;
 using RTS.Service.Connector.DTOs;
 using RTS.Service.Connector.Infrastructure.BackgroundWorker;
+
+using Microsoft.Extensions.Options;
 
 namespace RTS.Service.Connector.Infrastructure.Tracelink
 {
@@ -147,6 +148,7 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
             }
         }
 
+        // Get item list
         public async Task<ApiResult<List<TracelinkItemsDto>>> GetItemsFromCrmAsync(string crmId, CancellationToken token)
         {
             try
@@ -210,7 +212,6 @@ namespace RTS.Service.Connector.Infrastructure.Tracelink
             }
         }
 
-        // Helper method for logging fails
         private async Task<ApiResult<T>> Fail<T>(HttpResponseMessage response, CancellationToken token)
         {
             var msg = await response.Content.ReadAsStringAsync(token);

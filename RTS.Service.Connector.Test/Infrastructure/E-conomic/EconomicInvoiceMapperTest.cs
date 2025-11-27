@@ -11,7 +11,7 @@ namespace RTS.Service.Connector.Tests.Infrastructure.Economic
     {
         private readonly EconomicInvoiceMapper _mapper = new();
 
-        private readonly EconomicInvoiceDraft _economicInvoiceDraftDto = new()
+        private readonly EconomicInvoiceDraftDto _economicInvoiceDraftDto = new()
         {
             Currency = "DKK",
             Customer = new EconomicCustomer
@@ -53,7 +53,7 @@ namespace RTS.Service.Connector.Tests.Infrastructure.Economic
             Percentage = 0.50m
         };
 
-        private EconomicInvoiceDraft CreateResult() => _mapper.MapToInvoiceDraft(_economicInvoiceDraftDto, _tracelink, _invoicePart);
+        private EconomicInvoiceDraftDto CreateResult() => _mapper.MapToInvoiceDraft(_economicInvoiceDraftDto, _tracelink, _invoicePart);
 
 
         [Fact]

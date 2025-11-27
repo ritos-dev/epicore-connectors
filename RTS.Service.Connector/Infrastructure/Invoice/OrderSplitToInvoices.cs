@@ -27,7 +27,7 @@ namespace RTS.Service.Connector.Infrastructure.InvoiceSplit
         {
             if (customerType != CustomerType.Private)
             {
-                // B2B NOT implemented yet return nothing
+                // B2B NOT implemented yet
                 return new List<InvoicePart>();
             }
 

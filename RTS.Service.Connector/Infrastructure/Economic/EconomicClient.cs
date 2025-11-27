@@ -26,38 +26,31 @@ namespace RTS.Service.Connector.Infrastructure.Economic
             _options = options.Value;
         }
 
-        public async Task<ApiResult<EconomicInvoiceDraft>> GetOrderDraftIfExistsAsync(string orderNumber, CancellationToken cancellationToken = default)
+        public async Task<ApiResult<EconomicInvoiceDraftDto>> GetOrderDraftIfExistsAsync(string orderNumber, CancellationToken cancellationToken = default)
         {
-            // FOR TESTING ONLY! Manual override
-            if (orderNumber != null)
-            {
-                _logger.LogInformation("Overriding TraceLink order nr.");
-                orderNumber = "1";
-            }
-
             var url = $"{_options.BaseUrl}{_options.Endpoints.GetOrderDraft}{orderNumber}";
 
             _logger.LogInformation("[Economic] Fetching order draft {OrderNumber}...", orderNumber);
 
             var response = await _client.GetAsync(url, cancellationToken);
             if (!response.IsSuccessStatusCode)
-                return await Fail<EconomicInvoiceDraft>(response, cancellationToken);
+                return await Fail<EconomicInvoiceDraftDto>(response, cancellationToken);
 
             var json = await response.Content.ReadAsStringAsync(cancellationToken);
             _logger.LogInformation("[Economic] Order draft {OrderNumber} fetched successfully.", orderNumber);
 
-            var dto = JsonConvert.DeserializeObject<EconomicInvoiceDraft>(json);
+            var dto = JsonConvert.DeserializeObject<EconomicInvoiceDraftDto>(json);
 
             if (dto == null)
             {
                 _logger.LogWarning("[Economic] Failed to deserialize JSON into EconomicInvoiceDraft for order {OrderNumber}.", orderNumber);
-                return ApiResult<EconomicInvoiceDraft>.Failure("API returned success, but JSON could not be deserialized into EconomicInvoiceDraft.");
+                return ApiResult<EconomicInvoiceDraftDto>.Failure("API returned success, but JSON could not be deserialized into EconomicInvoiceDraft.");
             }
 
-            return ApiResult<EconomicInvoiceDraft>.Success(dto);
+            return ApiResult<EconomicInvoiceDraftDto>.Success(dto);
         }
 
-        public async Task<ApiResult<EconomicInvoiceDraft>> CreateInvoiceDraftAsync(EconomicInvoiceDraft draft, string orderNumber, string crmNumber, CancellationToken cancellationToken)
+        public async Task<ApiResult<EconomicInvoiceDraftDto>> CreateInvoiceDraftAsync(EconomicInvoiceDraftDto draft, string orderNumber, string crmNumber, CancellationToken cancellationToken)
         {
             var url = $"{_options.BaseUrl}{_options.Endpoints.CreateDraft}";
             var jsonBody = JsonConvert.SerializeObject(draft, Formatting.None);
@@ -69,12 +62,11 @@ namespace RTS.Service.Connector.Infrastructure.Economic
 
             var response = await _client.PostAsync(url, content, cancellationToken);
             if (!response.IsSuccessStatusCode)
-                return await Fail<EconomicInvoiceDraft>(response, cancellationToken);
+                return await Fail<EconomicInvoiceDraftDto>(response, cancellationToken);
 
             var result = await response.Content.ReadAsStringAsync(cancellationToken);
 
-            // Invoice draft number from economic
-            var dto = JsonConvert.DeserializeObject<EconomicInvoiceDraft>(result);
+            var dto = JsonConvert.DeserializeObject<EconomicInvoiceDraftDto>(result);
             
             if(dto?.DraftInvoiceNumber != null)
             {
@@ -85,7 +77,7 @@ namespace RTS.Service.Connector.Infrastructure.Economic
                 _logger.LogInformation("[Economic] Invoice number not found.");
             }
 
-            return ApiResult<EconomicInvoiceDraft>.Success(dto);
+            return ApiResult<EconomicInvoiceDraftDto>.Success(dto);
         }
 
         private async Task<ApiResult<T>> Fail<T>(HttpResponseMessage response, CancellationToken token)

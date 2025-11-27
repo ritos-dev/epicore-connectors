@@ -257,7 +257,7 @@ namespace RTS.Service.Connector.Infrastructure.BackgroundWorker
             return invoiceParts;
         }
 
-        private async Task<EconomicInvoiceDraft?> CreateInvoiceDraftAndHandleFailureAsync(
+        private async Task<EconomicInvoiceDraftDto?> CreateInvoiceDraftAndHandleFailureAsync(
             CombinedOrderData data,
             InvoicePart part,
             CancellationToken stoppingToken)
@@ -281,7 +281,7 @@ namespace RTS.Service.Connector.Infrastructure.BackgroundWorker
         private async Task PersistSingleInvoiceAsync(
             string orderNumber,
             string crmNumber,
-            EconomicInvoiceDraft invoiceDraft,
+            EconomicInvoiceDraftDto invoiceDraft,
             CancellationToken stoppingToken)
         {
             using (var scope = _scopeFactory.CreateScope())

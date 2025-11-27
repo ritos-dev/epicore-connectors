@@ -3,9 +3,9 @@ using RTS.Service.Connector.Infrastructure.BackgroundWorker;
 
 namespace RTS.Service.Connector.DTOs
 {
-    public class EconomicInvoiceDraft
+    public class EconomicInvoiceDraftDto
     {
-        public static implicit operator ApiResult<string>(EconomicInvoiceDraft draft)
+        public static implicit operator ApiResult<string>(EconomicInvoiceDraftDto draft)
         {
             if (draft == null)
             {
