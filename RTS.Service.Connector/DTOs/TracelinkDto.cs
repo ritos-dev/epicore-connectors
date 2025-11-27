@@ -73,7 +73,7 @@ namespace RTS.Service.Connector.DTOs
         public string CrmId { get; init; } = string.Empty;
     }
 
-    // Order items connected to CRM id
+    // Items connected to a specific CRM / order
     public class TracelinkItemsDto
     {
         [JsonProperty("crm_id")]
@@ -86,7 +86,7 @@ namespace RTS.Service.Connector.DTOs
         public decimal ItemAmount { get; init; }
     }
 
-    // Item list
+    // Item list of all the items RTS has in tracelink
     public class TracelinkItemsListDto
     {
         [JsonProperty("object_id")]

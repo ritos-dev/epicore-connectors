@@ -1,5 +1,5 @@
-﻿using RTS.Service.Connector.Domain.Orders.Entities;
-using RTS.Service.Connector.DTOs;
+﻿using RTS.Service.Connector.DTOs;
+using RTS.Service.Connector.Domain.Orders.Entities;
 
 namespace RTS.Service.Connector.Infrastructure.Services
 {
@@ -39,7 +39,7 @@ namespace RTS.Service.Connector.Infrastructure.Services
                 {
                     CustomerName = dto.CustomerName,
                     CustomerId = dto.CustomerId,
-                    CrmId = dto.CrmNumber,
+                    CrmNumber = dto.CrmNumber,
                     OrderNumber = int.TryParse(dto.OrderNumber, out var number) ? number : 0
                 };
             }

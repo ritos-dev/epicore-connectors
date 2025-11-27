@@ -1,11 +1,10 @@
-﻿using Newtonsoft.Json.Linq;
-using RTS.Service.Connector.DTOs;
+﻿using RTS.Service.Connector.DTOs;
+
+using Newtonsoft.Json.Linq;
 
 namespace RTS.Service.Connector.Infrastructure.Tracelink
 {
-
     // This class is responsible for moving JSON data from objects / arrays to DTO's.
-
     public static class TracelinkParser
     {
         // Extract order list

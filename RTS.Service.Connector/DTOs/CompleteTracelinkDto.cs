@@ -1,7 +1,5 @@
-﻿// IMPORTANT! This dto is only used to save tracelink data to db AND to help create an invoice in economic.
-// This dto is NOT tied to tracelink endpoints.
-
-using Newtonsoft.Json;
+﻿// This dto is only used to save tracelink data to db and to help create an invoice in economic.
+// This dto is not tied to tracelink endpoints. 
 
 namespace RTS.Service.Connector.DTOs
 {

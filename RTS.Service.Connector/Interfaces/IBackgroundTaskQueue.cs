@@ -2,7 +2,7 @@
 {
     public interface IBackgroundTaskQueue
     {
-        void Enqueue(string orderNumber);
+        ValueTask EnqueueAsync(string orderNumber, CancellationToken token);
         Task<string> DequeueAsync(CancellationToken token);
     }
 }

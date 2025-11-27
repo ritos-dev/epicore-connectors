@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+
 using RTS.Service.Connector.Interfaces;
 
 namespace RTS.Service.Connector.Controllers
@@ -19,13 +20,19 @@ namespace RTS.Service.Connector.Controllers
         }
 
         [HttpGet("webhook")]
-        public IActionResult ReceiveOrder([FromQuery]  string orderNumber)
+        public IActionResult ReceiveOrder([FromQuery]  string orderNumber, CancellationToken token)
         {
-            _logger.LogInformation("[TraceLink Webhook] Order is ready to be invoiced. OrderNumber: {OrderNumber}", orderNumber);
-
-            _queue.Enqueue(orderNumber);
-
-            return Accepted();
+            try
+            {
+                _logger.LogInformation("Received order number: {OrderNumber}", orderNumber);
+                _queue.EnqueueAsync(orderNumber, token);
+                return Accepted();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to enqueue order number: {OrderNumber}", orderNumber);
+                return BadRequest();
+            }
         }
     }
 }

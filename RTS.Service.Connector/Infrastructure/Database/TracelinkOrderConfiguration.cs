@@ -24,7 +24,7 @@ namespace RTS.Service.Connector.Infrastructure.Database
                 .IsRequired()
                 .HasMaxLength(50);
 
-            builder.Property(o=>o.CrmId)
+            builder.Property(o=>o.CrmNumber)
                 .IsRequired();
         }
     }

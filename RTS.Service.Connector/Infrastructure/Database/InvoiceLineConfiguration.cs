@@ -28,7 +28,6 @@ namespace RTS.Service.Connector.Infrastructure.Persistence.Configurations
             builder.Property(l => l.LineTotal)
                    .HasColumnType("decimal(18,2)");
 
-            // Relationship
             builder.HasOne(l => l.Invoice)
                    .WithMany(i => i.Lines)
                    .HasForeignKey(l => l.InvoiceId)

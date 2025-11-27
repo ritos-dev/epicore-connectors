@@ -3,7 +3,6 @@ using RTS.Service.Connector.Domain.Enums;
 using RTS.Service.Connector.Domain.Invoices.Entities;
 using RTS.Service.Connector.Domain.SummaryInvoiceReport.Entities;
 
-using Newtonsoft.Json;
 using Microsoft.EntityFrameworkCore;
 
 namespace RTS.Service.Connector.Infrastructure.Services
@@ -19,18 +18,17 @@ namespace RTS.Service.Connector.Infrastructure.Services
             _logger = logger;
         }
 
-        public async Task SaveInvoiceAsync(string invoiceJson, string orderNumber, string crmNumber, CancellationToken cancellationToken)
+        public async Task SaveInvoiceAsync(EconomicInvoiceDraftDto invoiceDraft, string orderNumber, string crmNumber, CancellationToken cancellationToken)
         {
             try
             {
-                var draft = JsonConvert.DeserializeObject<EconomicInvoiceDraft>(invoiceJson);
-                if (draft is null)
+                if (invoiceDraft == null)
                 {
-                    _logger.LogWarning("[Database] Deserialization failed for order {OrderNumber}.", orderNumber);
+                    _logger.LogWarning("[Database] Received null invoice draft for order {OrderNumber}.", orderNumber);
                     return;
                 }
 
-                var invoice = DbInvoiceMapper.ToEntity(draft, orderNumber, crmNumber);
+                var invoice = DbInvoiceMapper.ToEntity(invoiceDraft, orderNumber, crmNumber);
 
                 // summary report for invoices with same CRM
                 var summary = await CreateOrUpdateSummaryReport(crmNumber, invoice.CustomerName, invoice.Currency, invoice.InvoiceAmount, cancellationToken);
@@ -88,7 +86,7 @@ namespace RTS.Service.Connector.Infrastructure.Services
 
     public static class DbInvoiceMapper
     {
-        public static Invoice ToEntity(EconomicInvoiceDraft draft, string orderNumber, string crmNumber)
+        public static Invoice ToEntity(EconomicInvoiceDraftDto draft, string orderNumber, string crmNumber)
         {
             var invoice = new Invoice
             {
